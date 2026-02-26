@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Toll Admin Dashboard</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --sidebar: #1e1b4b;
+            --background: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: var(--background);
+            color: var(--text-main);
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            gap: 5px;
+        }
+
+        .nav-item {
+            padding: 15px 24px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: rgba(255,255,255,0.1);
+            border-left: 4px solid var(--primary);
+        }
+
+        /* Main Content Styling */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .header-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: var(--text-main);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease-in-out; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards and Forms */
+        .card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+
+        .card.wide { max-width: 1000px; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-muted); }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover { background: var(--primary-hover); }
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: #059669; }
+
+        /* User Details Display */
+        .user-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .info-box p { margin: 0; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; font-weight: 700; }
+        .info-box h4 { margin: 5px 0 0 0; font-size: 1.1rem; color: var(--text-main); }
+        .balance-text { color: var(--success); font-size: 1.5rem !important; }
+
+        /* Data Table for History */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background-color: #f8fafc; font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.85rem; }
+        tr:hover { background-color: #f1f5f9; }
+        .badge { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
+        
+        .loader { text-align: center; padding: 40px; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <i class="fa-solid fa-road-barrier"></i> Smart Toll
+        </div>
+        <div class="nav-menu">
+            <div class="nav-item active" onclick="switchTab('recharge', this)">
+                <i class="fa-solid fa-wallet"></i> Recharge Dashboard
+            </div>
+            <div class="nav-item" onclick="switchTab('register', this)">
+                <i class="fa-solid fa-id-card"></i> Register New Card
+            </div>
+            <div class="nav-item" onclick="switchTab('history', this); loadHistory();">
+                <i class="fa-solid fa-table-list"></i> Recharge History
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        
+        <div id="recharge" class="tab-content active">
+            <h1 class="header-title">Card Management</h1>
+            <div class="card">
+                <div class="form-group">
+                    <label>Card UID</label>
+                    <input type="text" id="rechUid" placeholder="Scan or enter Card UID" required>
+                </div>
+                <button onclick="checkBalance()"><i class="fa-solid fa-magnifying-glass"></i> Fetch Details</button>
+
+                <div id="userDetailsCard" style="display: none;">
+                    <div class="user-info-grid">
+                        <div class="info-box">
+                            <p>User Name</p>
+                            <h4 id="dispName">-</h4>
+                        </div>
+                        <div class="info-box">
+                            <p>Vehicle ID</p>
+                            <h4 id="dispVehicle">-</h4>
+                        </div>
+                        <div class="info-box" style="grid-column: span 2; background: #ecfdf5; padding: 15px; border-radius: 8px;">
+                            <p>Available Balance</p>
+                            <h4 class="balance-text">₹<span id="dispBalance">0</span></h4>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 25px;">
+                        <label>Recharge Amount (₹)</label>
+                        <input type="number" id="rechargeAmount" placeholder="Enter amount to add">
+                    </div>
+                    <button class="btn-success" onclick="initiatePayment()"><i class="fa-solid fa-bolt"></i> Pay securely with Razorpay</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="register" class="tab-content">
+            <h1 class="header-title">Register User</h1>
+            <div class="card">
+                <div class="form-group">
+                    <label>Card UID</label>
+                    <input type="text" id="regUid" placeholder="e.g., A1B2C3D4">
+                </div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="regName" placeholder="Enter full name">
+                </div>
+                <div class="form-group">
+                    <label>Mobile Number</label>
+                    <input type="text" id="regMobile" placeholder="10-digit mobile number">
+                </div>
+                <div class="form-group">
+                    <label>Vehicle ID</label>
+                    <input type="text" id="regVehicle" placeholder="e.g., AP39XX1234">
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="regEmail" placeholder="Enter email">
+                </div>
+                <button onclick="registerCard()"><i class="fa-solid fa-user-plus"></i> Activate Card</button>
+            </div>
+        </div>
+
+        <div id="history" class="tab-content">
+            <h1 class="header-title">Transaction History</h1>
+            <div class="card wide">
+                <button onclick="loadHistory()" style="width: auto; margin-bottom: 20px; background: var(--text-muted);">
+                    <i class="fa-solid fa-rotate-right"></i> Refresh Data
+                </button>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Card UID</th>
+                                <th>Vehicle ID</th>
+                                <th>Amount Added</th>
+                                <th>Payment ID</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            </tbody>
+                    </table>
+                    <div id="tableLoader" class="loader" style="display: none;">
+                        <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+                        <p>Fetching data from Google Sheets...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+<script>
+    // ==========================================
+    // CONFIGURATION
+    // ==========================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyCBAlNfSmejLLhYD45qIMC8s5pFbh5yB4A",
+        authDomain: "smart-tollgate-78526.firebaseapp.com",
+        databaseURL: "https://smart-tollgate-78526-default-rtdb.firebaseio.com",
+        projectId: "smart-tollgate-78526",
+        storageBucket: "smart-tollgate-78526.firebasestorage.app",
+        messagingSenderId: "838873522197",
+        appId: "1:838873522197:web:87ae7feedc279561166e1c",
+        measurementId: "G-SB5RGKH5HE"
+    };
+    const RAZORPAY_KEY_ID = "rzp_test_3WgTq9ybOpe62Y";
+    const APPS_SCRIPT_WEBHOOK = "https://script.google.com/macros/s/AKfycby3csphaMUCF_EKJegBRE-XugzRb1pKh2SM0mSv1_pA3Vxpi5N1uYJKSBRRaXnlL62ycQ/exec";
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let currentUserData = {};
+    let currentUid = "";
+
+    // ==========================================
+    // UI TAB SWITCHING
+    // ==========================================
+    function switchTab(tabId, element) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        element.classList.add('active');
+    }
+
+    // ==========================================
+    // REGISTRATION LOGIC
+    // ==========================================
+    function registerCard() {
+        const uid = document.getElementById('regUid').value.trim();
+        const data = {
+            name: document.getElementById('regName').value,
+            mobile: document.getElementById('regMobile').value,
+            vehicle_id: document.getElementById('regVehicle').value,
+            email: document.getElementById('regEmail').value,
+            date_created: new Date().toISOString().split('T')[0],
+            balance: 0 
+        };
+
+        if(!uid || !data.name || !data.mobile || !data.vehicle_id) {
+            alert("Please fill all fields!");
+            return;
+        }
+
+        db.ref('Toll_Users/' + uid).set(data).then(() => {
+            alert("Card Registered Successfully!");
+            document.querySelectorAll('#register input').forEach(input => input.value = '');
+        }).catch((error) => { alert("Error: " + error.message); });
+    }
+
+    // ==========================================
+    // FETCH DETAILS LOGIC
+    // ==========================================
+    function checkBalance() {
+        currentUid = document.getElementById('rechUid').value.trim();
+        if(!currentUid) { alert("Enter a Card UID"); return; }
+
+        db.ref('Toll_Users/' + currentUid).once('value').then((snapshot) => {
+            if(snapshot.exists()) {
+                currentUserData = snapshot.val();
+                document.getElementById('dispName').innerText = currentUserData.name;
+                document.getElementById('dispVehicle').innerText = currentUserData.vehicle_id;
+                document.getElementById('dispBalance').innerText = currentUserData.balance;
+                document.getElementById('userDetailsCard').style.display = 'block';
+            } else {
+                alert("Card UID not found in database.");
+                document.getElementById('userDetailsCard').style.display = 'none';
+            }
+        });
+    }
+
+    // ==========================================
+    // RAZORPAY & RECHARGE LOGIC
+    // ==========================================
+    function initiatePayment() {
+        const amount = parseInt(document.getElementById('rechargeAmount').value);
+        if(!amount || amount <= 0) { alert("Enter a valid amount!"); return; }
+
+        var options = {
+            "key": RAZORPAY_KEY_ID, 
+            "amount": amount * 100, 
+            "currency": "INR",
+            "name": "Smart Toll System",
+            "description": "Toll Card Recharge",
+            "handler": function (response) {
+                handleSuccessfulRecharge(amount, response.razorpay_payment_id);
+            },
+            "prefill": {
+                "name": currentUserData.name,
+                "email": currentUserData.email,
+                "contact": currentUserData.mobile
+            },
+            "theme": { "color": "#4f46e5" }
+        };
+        var rzp = new Razorpay(options);
+        rzp.open();
+    }
+
+    function handleSuccessfulRecharge(amountAdded, paymentId) {
+        const newBalance = currentUserData.balance + amountAdded;
+        db.ref('Toll_Users/' + currentUid).update({ balance: newBalance }).then(() => {
+            document.getElementById('dispBalance').innerText = newBalance;
+            currentUserData.balance = newBalance;
+            alert("Payment Successful! Balance updated.");
+            document.getElementById('rechargeAmount').value = '';
+            logToGoogleSheets(amountAdded, paymentId);
+        });
+    }
+
+    function logToGoogleSheets(amount, paymentId) {
+        const payload = {
+            card_uid: currentUid,
+            vehicle_id: currentUserData.vehicle_id,
+            amount: amount,
+            payment_id: paymentId
+        };
+        fetch(APPS_SCRIPT_WEBHOOK, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        }).then(response => response.json()).then(data => console.log("Logged:", data));
+    }
+
+    // ==========================================
+    // FETCH HISTORY FROM GOOGLE SHEETS
+    // ==========================================
+    function loadHistory() {
+        const tbody = document.getElementById('historyTableBody');
+        const loader = document.getElementById('tableLoader');
+        
+        tbody.innerHTML = ''; // Clear table
+        loader.style.display = 'block'; // Show spinner
+
+        fetch(APPS_SCRIPT_WEBHOOK)
+        .then(response => response.json())
+        .then(data => {
+            loader.style.display = 'none';
+            
+            // Reverse data to show newest first
+            data.reverse().forEach(row => {
+                // Ensure row actually has data before rendering
+                if(row.uid) { 
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${new Date(row.date).toLocaleString()}</td>
+                        <td><strong>${row.uid}</strong></td>
+                        <td>${row.vehicle}</td>
+                        <td style="color: #10b981; font-weight: bold;">+ ₹${row.amount}</td>
+                        <td style="font-family: monospace; font-size: 0.9em;">${row.payment_id}</td>
+                        <td><span class="badge">Success</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+        })
+        .catch(error => {
+            loader.style.display = 'none';
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Error loading history. Make sure Apps Script 'doGet' is deployed.</td></tr>`;
+        });
+    }
+</script>
+
+</body>
+</html>
