@@ -1,460 +1,1970 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Toll Admin Dashboard</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <title>Smart Toll — Admin Console</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 
     <style>
-        
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --sidebar: #1e1b4b;
-            --background: #f3f4f6;
-            --card-bg: #ffffff;
-            --text-main: #111827;
-            --text-muted: #6b7280;
-            --success: #10b981;
+            /* Dark Theme */
+            --bg-base: #0a0a0f;
+            --bg-surface: #111118;
+            --bg-card: #16161f;
+            --bg-card-hover: #1c1c28;
+            --bg-input: #0f0f17;
+            --border: rgba(255,255,255,0.07);
+            --border-focus: rgba(99, 102, 241, 0.6);
+
+            --text-primary: #f0f0f8;
+            --text-secondary: #8b8ba0;
+            --text-muted: #55556a;
+
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --accent-hover: #818cf8;
+            --success: #22d3a0;
+            --success-bg: rgba(34, 211, 160, 0.1);
+            --warning: #fb923c;
+            --warning-bg: rgba(251, 146, 60, 0.1);
+            --danger: #f87171;
+            --danger-bg: rgba(248, 113, 113, 0.1);
+            --ev-color: #34d399;
+            --ev-bg: rgba(52, 211, 153, 0.12);
+            --ice-color: #fb923c;
+            --ice-bg: rgba(251, 146, 60, 0.12);
+
+            --sidebar-w: 260px;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.4);
         }
+
+        [data-theme="light"] {
+            --bg-base: #f0f0f7;
+            --bg-surface: #e8e8f0;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f8f8fc;
+            --bg-input: #f4f4fa;
+            --border: rgba(0,0,0,0.08);
+            --border-focus: rgba(99, 102, 241, 0.5);
+            --text-primary: #111126;
+            --text-secondary: #555575;
+            --text-muted: #9090a8;
+            --shadow: 0 4px 24px rgba(0,0,0,0.1);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
             display: flex;
             height: 100vh;
-            background-color: var(--background);
-            color: var(--text-main);
+            overflow: hidden;
+            transition: background 0.3s, color 0.3s;
         }
 
-        /* Sidebar Styling */
+        /* ─── SIDEBAR ─── */
         .sidebar {
-            width: 260px;
-            background-color: var(--sidebar);
-            color: white;
+            width: var(--sidebar-w);
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+            position: relative;
+            z-index: 10;
+            transition: width 0.3s ease;
         }
 
-        .sidebar-header {
-            padding: 24px;
-            font-size: 1.5rem;
-            font-weight: 700;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+        .sidebar-logo {
+            padding: 28px 24px 20px;
             display: flex;
             align-items: center;
             gap: 12px;
+            border-bottom: 1px solid var(--border);
         }
 
-        .nav-menu {
-            display: flex;
-            flex-direction: column;
-            padding: 20px 0;
-            gap: 5px;
+        .logo-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; color: white; flex-shrink: 0;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .logo-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+            color: var(--text-primary);
+        }
+
+        .logo-text span { color: var(--accent); }
+
+        .sidebar-section-label {
+            padding: 20px 20px 8px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
         }
 
         .nav-item {
-            padding: 15px 24px;
+            margin: 2px 12px;
+            padding: 11px 14px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            font-weight: 600;
             display: flex;
             align-items: center;
             gap: 12px;
-            transition: all 0.3s;
+            font-size: 0.92rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            position: relative;
         }
 
-        .nav-item:hover, .nav-item.active {
-            background-color: rgba(255,255,255,0.1);
-            border-left: 4px solid var(--primary);
+        .nav-item:hover { background: var(--bg-card); color: var(--text-primary); }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(167,139,250,0.1));
+            color: var(--accent-hover);
+            border: 1px solid rgba(99,102,241,0.2);
         }
 
-        /* Main Content Styling */
-        .main-content {
-            flex: 1;
-            padding: 40px;
-            overflow-y: auto;
-        }
-
-        .header-title {
-            font-size: 2rem;
+        .nav-item .nav-icon { width: 18px; text-align: center; font-size: 0.9rem; }
+        .nav-badge {
+            margin-left: auto;
+            background: var(--accent);
+            color: white;
+            font-size: 0.7rem;
             font-weight: 700;
-            margin-bottom: 30px;
-            color: var(--text-main);
+            padding: 2px 7px;
+            border-radius: 999px;
         }
 
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.4s ease-in-out; }
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 16px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+        .theme-toggle {
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            margin-left: auto;
+        }
+
+        .theme-toggle:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+
+        /* ─── MAIN ─── */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .topbar {
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .topbar-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .topbar-title span { color: var(--text-primary); font-weight: 700; }
+
+        .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.8); }
+        }
+
+        .live-text {
+            font-size: 0.78rem;
+            color: var(--success);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+        }
+
+        .tab-pane { display: none; animation: slideUp 0.3s ease; }
+        .tab-pane.active { display: block; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(12px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Cards and Forms */
+        /* ─── CARDS ─── */
         .card {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            max-width: 600px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            transition: background 0.2s;
+        }
+
+        .card:hover { background: var(--bg-card-hover); }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 22px;
+        }
+
+        .card-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+        }
+
+        .card-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .card-sub {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        /* ─── STAT GRID ─── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 22px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .stat-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: var(--radius) var(--radius) 0 0;
+        }
+
+        .stat-card:nth-child(1)::before { background: linear-gradient(90deg, var(--accent), #a78bfa); }
+        .stat-card:nth-child(2)::before { background: linear-gradient(90deg, var(--success), #6ee7b7); }
+        .stat-card:nth-child(3)::before { background: linear-gradient(90deg, var(--ev-color), #a7f3d0); }
+        .stat-card:nth-child(4)::before { background: linear-gradient(90deg, var(--warning), #fde68a); }
+
+        .stat-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+        .stat-value { font-family: 'Space Mono', monospace; font-size: 1.8rem; font-weight: 700; color: var(--text-primary); }
+        .stat-icon { position: absolute; top: 18px; right: 18px; font-size: 1.1rem; color: var(--text-muted); opacity: 0.5; }
+        .stat-delta { font-size: 0.8rem; margin-top: 6px; color: var(--success); }
+
+        /* ─── GRID LAYOUTS ─── */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .three-col { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; }
+
+        /* ─── FORM ─── */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-grid .full { grid-column: span 2; }
+
+        .form-group { display: flex; flex-direction: column; gap: 7px; }
+        .form-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-muted);
+        }
+
+        .form-input {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 11px 14px;
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .form-input::placeholder { color: var(--text-muted); }
+
+        select.form-input { cursor: pointer; }
+
+        /* ─── VEHICLE TYPE SELECTOR ─── */
+        .vehicle-type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .vtype-option {
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vtype-option:hover { border-color: var(--text-muted); }
+
+        .vtype-option.selected-ev {
+            border-color: var(--ev-color);
+            background: var(--ev-bg);
+        }
+
+        .vtype-option.selected-ice {
+            border-color: var(--ice-color);
+            background: var(--ice-bg);
+        }
+
+        .vtype-icon { font-size: 1.4rem; }
+        .vtype-label { font-weight: 600; font-size: 0.9rem; }
+        .vtype-sub { font-size: 0.72rem; color: var(--text-muted); }
+        .vtype-check {
+            position: absolute;
+            top: 8px; right: 8px;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: var(--ev-color);
+            display: none;
+            align-items: center; justify-content: center;
+            font-size: 0.6rem; color: white;
+        }
+
+        .vtype-option.selected-ev .vtype-check,
+        .vtype-option.selected-ice .vtype-check { display: flex; background: currentColor; }
+        .vtype-option.selected-ice .vtype-check { background: var(--ice-color); }
+
+        /* ─── BUTTONS ─── */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); }
+
+        .btn-success {
+            background: var(--success);
+            color: #001a12;
+            box-shadow: 0 4px 15px rgba(34, 211, 160, 0.3);
+        }
+
+        .btn-success:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover { background: var(--bg-card); color: var(--text-primary); border-color: var(--text-muted); }
+
+        .btn-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid rgba(248,113,113,0.2); }
+        .btn-danger:hover { background: var(--danger); color: white; }
+
+        .btn-full { width: 100%; }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+
+        /* ─── USER PROFILE CARD ─── */
+        .profile-card {
+            background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(167,139,250,0.08));
+            border: 1px solid rgba(99,102,241,0.2);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-top: 20px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
             margin-bottom: 20px;
         }
 
-        .card.wide { max-width: 1000px; }
-
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-muted); }
-        
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 1rem;
-            font-family: inherit;
-            transition: border-color 0.3s;
+        .profile-avatar {
+            width: 54px; height: 54px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; color: white; flex-shrink: 0;
+            font-weight: 700;
+            font-family: 'Space Mono', monospace;
         }
 
-        input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .profile-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+        .profile-uid {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--accent);
+            background: var(--accent-glow);
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
 
-        button {
-            width: 100%;
-            padding: 14px;
-            background: var(--primary);
-            color: white;
-            border: none;
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .profile-field { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px 14px; }
+        [data-theme="light"] .profile-field { background: rgba(255,255,255,0.6); }
+        .profile-field-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 5px; }
+        .profile-field-value { font-weight: 600; font-size: 0.95rem; }
+
+        .balance-display {
+            grid-column: span 3;
+            background: rgba(34, 211, 160, 0.1);
+            border: 1px solid rgba(34, 211, 160, 0.2);
+            border-radius: 10px;
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .balance-label { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--success); }
+        .balance-amount {
+            font-family: 'Space Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        /* ─── VEHICLE TYPE BADGE ─── */
+        .v-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
             border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .v-badge.ev { background: var(--ev-bg); color: var(--ev-color); border: 1px solid rgba(52,211,153,0.2); }
+        .v-badge.ice { background: var(--ice-bg); color: var(--ice-color); border: 1px solid rgba(251,146,60,0.2); }
+
+        .discount-pill {
+            background: rgba(99,102,241,0.15);
+            color: var(--accent-hover);
+            border: 1px solid rgba(99,102,241,0.2);
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        /* ─── TABLE ─── */
+        .table-wrapper { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        thead th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 14px 16px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        tbody tr:hover { background: var(--bg-card-hover); }
+        tbody tr:last-child td { border-bottom: none; }
+
+        .mono { font-family: 'Space Mono', monospace; font-size: 0.82rem; }
+
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 10px; border-radius: 6px;
+            font-size: 0.75rem; font-weight: 700;
+        }
+
+        .status-badge.success { background: var(--success-bg); color: var(--success); }
+        .status-badge.warning { background: var(--warning-bg); color: var(--warning); }
+        .status-badge.danger { background: var(--danger-bg); color: var(--danger); }
+
+        /* ─── SEARCH BAR ─── */
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-input-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .search-input-wrap i {
+            position: absolute;
+            left: 12px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .search-input-wrap input {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px 10px 34px;
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+
+        .search-input-wrap input:focus { outline: none; border-color: var(--accent); }
+
+        /* ─── TOAST ─── */
+        .toast-container {
+            position: fixed;
+            bottom: 28px; right: 28px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            animation: toastIn 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .toast.fadeOut { animation: toastOut 0.3s ease forwards; }
+
+        @keyframes toastOut {
+            to { opacity: 0; transform: translateX(30px); }
+        }
+
+        .toast-icon { font-size: 1.1rem; flex-shrink: 0; }
+        .toast.success .toast-icon { color: var(--success); }
+        .toast.error .toast-icon { color: var(--danger); }
+        .toast.info .toast-icon { color: var(--accent); }
+
+        .toast-body { flex: 1; }
+        .toast-title { font-weight: 700; margin-bottom: 2px; }
+        .toast-msg { font-size: 0.82rem; color: var(--text-secondary); }
+
+        /* ─── LOADER ─── */
+        .loader-row td {
+            padding: 40px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px; height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ─── SECTION HEADER ─── */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .section-title { font-family: 'Space Mono', monospace; font-size: 1.1rem; font-weight: 700; }
+        .section-sub { font-size: 0.82rem; color: var(--text-secondary); margin-top: 3px; }
+
+        /* ─── EMPTY STATE ─── */
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 2.5rem; margin-bottom: 16px; opacity: 0.4; }
+        .empty-state p { font-size: 0.9rem; }
+
+        /* ─── DIVIDER ─── */
+        .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+        /* ─── SCROLLBAR ─── */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* ─── CHART CONTAINER ─── */
+        .chart-box { position: relative; height: 220px; }
+
+        /* ─── REGISTER STEP INDICATOR ─── */
+        .step-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 28px;
+            background: var(--bg-input);
+            border-radius: var(--radius-sm);
+            padding: 4px;
+        }
+
+        .step-tab {
+            flex: 1;
+            padding: 9px 14px;
+            text-align: center;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border-radius: 6px;
+            color: var(--text-muted);
+            cursor: default;
+            transition: all 0.2s;
+        }
+
+        .step-tab.active { background: var(--bg-card); color: var(--text-primary); }
+        .step-tab.done { color: var(--success); }
+
+        /* ─── CARD STATUS TOGGLE ─── */
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle {
+            width: 44px; height: 24px;
+            background: var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.2s;
+        }
+
+        .toggle.on { background: var(--success); }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 18px; height: 18px;
+            background: white;
+            border-radius: 50%;
+            top: 3px; left: 3px;
+            transition: transform 0.2s;
+        }
+
+        .toggle.on::after { transform: translateX(20px); }
+        .toggle-label { font-size: 0.85rem; font-weight: 600; }
+
+        /* ─── MOBILE OVERLAY & HAMBURGER ─── */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 99;
+            backdrop-filter: blur(2px);
+        }
+
+        .hamburger {
+            display: none;
+            width: 40px; height: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            align-items: center; justify-content: center;
             cursor: pointer;
             font-size: 1rem;
-            font-weight: 600;
-            transition: background 0.3s;
+            color: var(--text-primary);
+            flex-shrink: 0;
+        }
+
+        /* ─── BOTTOM NAV (mobile only) ─── */
+        .bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border);
+            z-index: 90;
+            padding: 6px 0 env(safe-area-inset-bottom, 6px);
+        }
+
+        .bottom-nav-inner {
             display: flex;
-            justify-content: center;
+            justify-content: space-around;
+        }
+
+        .bnav-item {
+            display: flex;
+            flex-direction: column;
             align-items: center;
+            gap: 3px;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            transition: color 0.2s;
+            min-width: 56px;
+        }
+
+        .bnav-item i { font-size: 1.15rem; }
+        .bnav-item.active { color: var(--accent); }
+
+        /* ─── TABLET (≤ 1024px) ─── */
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .two-col { grid-template-columns: 1fr; }
+            .three-col { grid-template-columns: 1fr; }
+        }
+
+        /* ─── MOBILE (≤ 768px) ─── */
+        @media (max-width: 768px) {
+            body { overflow: hidden; }
+
+            /* Sidebar becomes a slide-over drawer */
+            .sidebar {
+                position: fixed;
+                top: 0; left: 0; bottom: 0;
+                z-index: 100;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                width: 280px !important;
+            }
+
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-overlay.open { display: block; }
+
+            /* Hamburger visible */
+            .hamburger { display: flex; }
+
+            /* Topbar adjustments */
+            .topbar { padding: 0 16px; height: 56px; gap: 10px; }
+            .topbar-title { font-size: 0.82rem; }
+
+            /* Content padding */
+            .main { overflow: hidden; }
+            .content {
+                padding: 16px 14px 80px; /* bottom pad for bottom nav */
+                overflow-y: auto;
+                height: calc(100vh - 56px);
+            }
+
+            /* Bottom nav */
+            .bottom-nav { display: block; }
+
+            /* Stats: 2 col on mobile */
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+            .stat-card { padding: 14px 14px; }
+            .stat-value { font-size: 1.4rem; }
+            .stat-icon { font-size: 0.9rem; top: 12px; right: 12px; }
+
+            /* Grids collapse */
+            .two-col, .three-col, .form-grid { grid-template-columns: 1fr; gap: 12px; }
+            .form-grid .full { grid-column: span 1; }
+
+            /* Cards */
+            .card { padding: 18px 16px; }
+            .card.wide { max-width: 100%; }
+
+            /* Profile grid */
+            .profile-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .balance-display { grid-column: span 2; flex-direction: column; align-items: flex-start; gap: 6px; }
+            .balance-amount { font-size: 1.6rem; }
+
+            /* Section header stacks on small screens */
+            .section-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+
+            /* Search bar stacks */
+            .search-bar { flex-direction: column; align-items: stretch; }
+            .search-input-wrap { min-width: unset; }
+            .search-bar select.form-input { width: 100%; }
+
+            /* Toast */
+            .toast-container { bottom: 72px; right: 12px; left: 12px; }
+            .toast { min-width: unset; }
+
+            /* Tables: card-view on mobile */
+            .mobile-table-wrap table { display: none; }
+            .mobile-cards-list { display: flex; flex-direction: column; gap: 10px; }
+
+            /* Vehicle type selector: stack on tiny screens */
+            .vehicle-type-selector { grid-template-columns: 1fr; }
+
+            /* Profile header */
+            .profile-header { flex-direction: row; gap: 12px; }
+            .profile-avatar { width: 44px; height: 44px; font-size: 1rem; border-radius: 10px; }
+            .profile-name { font-size: 0.95rem; }
+
+            /* Topbar title hide breadcrumb on tiny */
+            .topbar-title .breadcrumb-sep { display: none; }
+        }
+
+        /* ─── SMALL PHONES (≤ 400px) ─── */
+        @media (max-width: 400px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .stat-value { font-size: 1.2rem; }
+            .content { padding: 12px 10px 80px; }
+            .bnav-item { padding: 8px 6px; min-width: 44px; font-size: 0.58rem; }
+        }
+
+        /* ─── Mobile card-view for tables ─── */
+        .m-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
             gap: 8px;
         }
 
-        button:hover { background: var(--primary-hover); }
-        .btn-success { background: var(--success); }
-        .btn-success:hover { background: #059669; }
-
-        /* User Details Display */
-        .user-info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            border: 1px solid #e2e8f0;
+        .m-card-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.88rem;
         }
 
-        .info-box p { margin: 0; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; font-weight: 700; }
-        .info-box h4 { margin: 5px 0 0 0; font-size: 1.1rem; color: var(--text-main); }
-        .balance-text { color: var(--success); font-size: 1.5rem !important; }
+        .m-card-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
 
-        /* Data Table for History */
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        th { background-color: #f8fafc; font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.85rem; }
-        tr:hover { background-color: #f1f5f9; }
-        .badge { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
-        
-        .loader { text-align: center; padding: 40px; color: var(--text-muted); }
+        .m-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .m-card-name { font-weight: 700; font-size: 0.95rem; }
+        .m-card-divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <i class="fa-solid fa-road-barrier"></i> Smart Toll
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon"><i class="fa-solid fa-road-barrier"></i></div>
+        <div class="logo-text">Smart<span>Toll</span><br><small style="font-size:0.65rem; color:var(--text-muted); font-family:'DM Sans'; font-weight:400;">Admin Console</small></div>
+    </div>
+
+    <div class="sidebar-section-label">Navigation</div>
+
+    <div class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard', this)">
+        <i class="nav-icon fa-solid fa-gauge-high"></i> Overview
+    </div>
+    <div class="nav-item" data-tab="recharge" onclick="switchTab('recharge', this)">
+        <i class="nav-icon fa-solid fa-wallet"></i> Recharge Card
+    </div>
+    <div class="nav-item" data-tab="register" onclick="switchTab('register', this)">
+        <i class="nav-icon fa-solid fa-id-card-clip"></i> Register Card
+    </div>
+    <div class="nav-item" data-tab="history" onclick="switchTab('history', this); loadHistory();">
+        <i class="nav-icon fa-solid fa-clock-rotate-left"></i> Transactions
+    </div>
+    <div class="nav-item" data-tab="allcards" onclick="switchTab('allcards', this); loadAllCards();">
+        <i class="nav-icon fa-solid fa-layer-group"></i> All Cards
+    </div>
+
+    <div class="sidebar-footer">
+        <div style="font-size:0.78rem; color:var(--text-muted);">v2.0</div>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+            <i class="fa-solid fa-circle-half-stroke"></i>
+        </button>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+    <div class="topbar">
+        <div class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
+            <i class="fa-solid fa-bars"></i>
         </div>
-        <div class="nav-menu">
-            <div class="nav-item active" onclick="switchTab('recharge', this)">
-                <i class="fa-solid fa-wallet"></i> Recharge Dashboard
-            </div>
-            <div class="nav-item" onclick="switchTab('register', this)">
-                <i class="fa-solid fa-id-card"></i> Register New Card
-            </div>
-            <div class="nav-item" onclick="switchTab('history', this); loadHistory();">
-                <i class="fa-solid fa-table-list"></i> Recharge History
-            </div>
+        <div class="topbar-title">Smart Toll <span class="breadcrumb-sep">/ </span><span id="topbarSection">Overview</span></div>
+        <div class="topbar-right">
+            <div class="status-dot"></div>
+            <span class="live-text">LIVE</span>
         </div>
     </div>
 
-    <div class="main-content">
-        
-        <div id="recharge" class="tab-content active">
-            <h1 class="header-title">Card Management</h1>
-            <div class="card">
-                <div class="form-group">
-                    <label>Card UID</label>
-                    <input type="text" id="rechUid" placeholder="Scan or enter Card UID" required>
-                </div>
-                <button onclick="checkBalance()"><i class="fa-solid fa-magnifying-glass"></i> Fetch Details</button>
+    <div class="content">
 
-                <div id="userDetailsCard" style="display: none;">
-                    <div class="user-info-grid">
-                        <div class="info-box">
-                            <p>User Name</p>
-                            <h4 id="dispName">-</h4>
-                        </div>
-                        <div class="info-box">
-                            <p>Vehicle ID</p>
-                            <h4 id="dispVehicle">-</h4>
-                        </div>
-                        <div class="info-box" style="grid-column: span 2; background: #ecfdf5; padding: 15px; border-radius: 8px;">
-                            <p>Available Balance</p>
-                            <h4 class="balance-text">₹<span id="dispBalance">0</span></h4>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group" style="margin-top: 25px;">
-                        <label>Recharge Amount (₹)</label>
-                        <input type="number" id="rechargeAmount" placeholder="Enter amount to add">
-                    </div>
-                    <button class="btn-success" onclick="initiatePayment()"><i class="fa-solid fa-bolt"></i> Pay securely with Razorpay</button>
+        <!-- ── DASHBOARD ── -->
+        <div id="dashboard" class="tab-pane active">
+            <div class="section-header">
+                <div>
+                    <div class="section-title">Overview Dashboard</div>
+                    <div class="section-sub">Real-time system metrics</div>
                 </div>
-            </div>
-        </div>
-
-        <div id="register" class="tab-content">
-            <h1 class="header-title">Register User</h1>
-            <div class="card">
-                <div class="form-group">
-                    <label>Card UID</label>
-                    <input type="text" id="regUid" placeholder="e.g., A1B2C3D4">
-                </div>
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" id="regName" placeholder="Enter full name">
-                </div>
-                <div class="form-group">
-                    <label>Mobile Number</label>
-                    <input type="text" id="regMobile" placeholder="10-digit mobile number">
-                </div>
-                <div class="form-group">
-                    <label>Vehicle ID</label>
-                    <input type="text" id="regVehicle" placeholder="e.g., AP39XX1234">
-                </div>
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" id="regEmail" placeholder="Enter email">
-                </div>
-                <button onclick="registerCard()"><i class="fa-solid fa-user-plus"></i> Activate Card</button>
-            </div>
-        </div>
-
-        <div id="history" class="tab-content">
-            <h1 class="header-title">Transaction History</h1>
-            <div class="card wide">
-                <button onclick="loadHistory()" style="width: auto; margin-bottom: 20px; background: var(--text-muted);">
-                    <i class="fa-solid fa-rotate-right"></i> Refresh Data
+                <button class="btn btn-outline" onclick="refreshDashboard()">
+                    <i class="fa-solid fa-rotate-right"></i> Refresh
                 </button>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date & Time</th>
-                                <th>Card UID</th>
-                                <th>Vehicle ID</th>
-                                <th>Amount Added</th>
-                                <th>Payment ID</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="historyTableBody">
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="stat-icon fa-solid fa-users"></i>
+                    <div class="stat-label">Total Cards</div>
+                    <div class="stat-value" id="statCards">—</div>
+                    <div class="stat-delta"><i class="fa-solid fa-arrow-trend-up"></i> All registered</div>
+                </div>
+                <div class="stat-card">
+                    <i class="stat-icon fa-solid fa-indian-rupee-sign"></i>
+                    <div class="stat-label">Total Recharged</div>
+                    <div class="stat-value" id="statTotal">—</div>
+                    <div class="stat-delta" id="statTotalSub">Fetching...</div>
+                </div>
+                <div class="stat-card">
+                    <i class="stat-icon fa-solid fa-bolt"></i>
+                    <div class="stat-label">EV Vehicles</div>
+                    <div class="stat-value" id="statEV">—</div>
+                    <div class="stat-delta">20% toll discount</div>
+                </div>
+                <div class="stat-card">
+                    <i class="stat-icon fa-solid fa-fire"></i>
+                    <div class="stat-label">ICE Vehicles</div>
+                    <div class="stat-value" id="statICE">—</div>
+                    <div class="stat-delta">Standard rate</div>
+                </div>
+            </div>
+
+            <div class="two-col">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Recharge Volume</div>
+                        <span style="font-size:0.75rem;color:var(--text-muted);">Last 7 days (simulated)</span>
+                    </div>
+                    <div class="chart-box">
+                        <canvas id="rechargeChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Fleet Breakdown</div>
+                    </div>
+                    <div class="chart-box">
+                        <canvas id="fleetChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Recent Registrations</div>
+                    <a onclick="switchTab('allcards', document.querySelector('[data-tab=allcards]')); loadAllCards();" style="font-size:0.8rem;color:var(--accent);cursor:pointer;">View all →</a>
+                </div>
+                <div class="mobile-table-wrap">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr><th>Name</th><th>Card UID</th><th>Vehicle</th><th>Type</th><th>Balance</th><th>Status</th></tr>
+                            </thead>
+                            <tbody id="recentCardsBody">
+                                <tr class="loader-row"><td colspan="6"><span class="spinner"></span>Loading...</td></tr>
                             </tbody>
-                    </table>
-                    <div id="tableLoader" class="loader" style="display: none;">
-                        <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
-                        <p>Fetching data from Google Sheets...</p>
+                        </table>
+                    </div>
+                    <div class="mobile-cards-list" id="recentMobileList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── RECHARGE ── -->
+        <div id="recharge" class="tab-pane">
+            <div class="section-header">
+                <div>
+                    <div class="section-title">Recharge Card</div>
+                    <div class="section-sub">Fetch card details and add balance securely</div>
+                </div>
+            </div>
+
+            <div style="max-width:580px;">
+                <div class="card">
+                    <div class="form-group">
+                        <label class="form-label">Card UID</label>
+                        <input class="form-input" type="text" id="rechUid" placeholder="Scan or enter Card UID…">
+                    </div>
+                    <div class="btn-group" style="margin-top:0;">
+                        <button class="btn btn-primary btn-full" onclick="checkBalance()">
+                            <i class="fa-solid fa-magnifying-glass"></i> Fetch Card Details
+                        </button>
+                    </div>
+
+                    <div id="userDetailsCard" style="display:none;">
+                        <hr class="divider">
+
+                        <div class="profile-card" id="profileCard">
+                            <div class="profile-header">
+                                <div class="profile-avatar" id="profileAvatar">—</div>
+                                <div>
+                                    <div class="profile-name" id="dispName">—</div>
+                                    <div class="profile-uid" id="dispUidTag">—</div>
+                                    <div style="margin-top:6px; display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                                        <span class="v-badge" id="vTypeBadge">—</span>
+                                        <span class="discount-pill" id="discountBadge" style="display:none;"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="profile-grid">
+                                <div class="profile-field">
+                                    <div class="profile-field-label">Vehicle ID</div>
+                                    <div class="profile-field-value" id="dispVehicle">—</div>
+                                </div>
+                                <div class="profile-field">
+                                    <div class="profile-field-label">Mobile</div>
+                                    <div class="profile-field-value" id="dispMobile">—</div>
+                                </div>
+                                <div class="profile-field">
+                                    <div class="profile-field-label">Registered</div>
+                                    <div class="profile-field-value" id="dispDate">—</div>
+                                </div>
+                                <div class="balance-display">
+                                    <div>
+                                        <div class="balance-label">Available Balance</div>
+                                        <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">After recharge, balance updates instantly</div>
+                                    </div>
+                                    <div class="balance-amount">₹<span id="dispBalance">0</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:20px;">
+                            <div class="form-group">
+                                <label class="form-label">Recharge Amount (₹)</label>
+                                <input class="form-input" type="number" id="rechargeAmount" placeholder="Enter amount e.g. 500">
+                            </div>
+                            <div id="evDiscountNote" style="display:none; background:var(--ev-bg); border:1px solid rgba(52,211,153,0.2); border-radius:8px; padding:10px 14px; font-size:0.82rem; color:var(--ev-color); margin-top:10px;">
+                                <i class="fa-solid fa-bolt"></i> <strong>EV Benefit:</strong> This card gets 20% toll discount at all booths.
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn btn-success btn-full" onclick="initiatePayment()">
+                                    <i class="fa-solid fa-shield-halved"></i> Pay with Razorpay
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- ── REGISTER ── -->
+        <div id="register" class="tab-pane">
+            <div class="section-header">
+                <div>
+                    <div class="section-title">Register New Card</div>
+                    <div class="section-sub">Link a FASTag UID to a user profile</div>
+                </div>
+            </div>
+
+            <div style="max-width:660px;">
+                <div class="card">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Card UID *</label>
+                            <input class="form-input" type="text" id="regUid" placeholder="e.g. A1B2C3D4">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Full Name *</label>
+                            <input class="form-input" type="text" id="regName" placeholder="Enter full name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Mobile Number *</label>
+                            <input class="form-input" type="tel" id="regMobile" placeholder="10-digit number" maxlength="10">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Vehicle ID *</label>
+                            <input class="form-input" type="text" id="regVehicle" placeholder="e.g. KA05AB1234">
+                        </div>
+                        <div class="form-group full">
+                            <label class="form-label">Email Address</label>
+                            <input class="form-input" type="email" id="regEmail" placeholder="name@example.com">
+                        </div>
+
+                        <div class="form-group full">
+                            <label class="form-label">Vehicle Type *</label>
+                            <div class="vehicle-type-selector">
+                                <div class="vtype-option" id="vtype-ev" onclick="selectVehicleType('EV')">
+                                    <div class="vtype-icon">⚡</div>
+                                    <div>
+                                        <div class="vtype-label">Electric (EV)</div>
+                                        <div class="vtype-sub">20% toll discount applied</div>
+                                    </div>
+                                    <div class="vtype-check"><i class="fa-solid fa-check"></i></div>
+                                </div>
+                                <div class="vtype-option" id="vtype-ice" onclick="selectVehicleType('ICE')">
+                                    <div class="vtype-icon">⛽</div>
+                                    <div>
+                                        <div class="vtype-label">Combustion (ICE)</div>
+                                        <div class="vtype-sub">Standard toll rate</div>
+                                    </div>
+                                    <div class="vtype-check"><i class="fa-solid fa-check"></i></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Initial Balance (₹)</label>
+                            <input class="form-input" type="number" id="regBalance" placeholder="0" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Card Status</label>
+                            <select class="form-input" id="regStatus">
+                                <option value="active">Active</option>
+                                <option value="suspended">Suspended</option>
+                            </select>
+                        </div>
+
+                        <div class="full">
+                            <button class="btn btn-primary btn-full" onclick="registerCard()">
+                                <i class="fa-solid fa-user-plus"></i> Register & Activate Card
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── HISTORY ── -->
+        <div id="history" class="tab-pane">
+            <div class="section-header">
+                <div>
+                    <div class="section-title">Transaction History</div>
+                    <div class="section-sub">All recharge logs from Google Sheets</div>
+                </div>
+                <button class="btn btn-outline" onclick="loadHistory()">
+                    <i class="fa-solid fa-rotate-right"></i> Refresh
+                </button>
+            </div>
+
+            <div class="card" style="max-width:1100px;">
+                <div class="search-bar">
+                    <div class="search-input-wrap">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="historySearch" placeholder="Search by UID, vehicle, payment ID…" oninput="filterHistory()">
+                    </div>
+                    <select class="form-input" id="historyFilter" onchange="filterHistory()" style="width:160px;">
+                        <option value="">All amounts</option>
+                        <option value="low">Under ₹200</option>
+                        <option value="mid">₹200 – ₹500</option>
+                        <option value="high">Over ₹500</option>
+                    </select>
+                </div>
+                <div class="mobile-table-wrap">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr><th>Date & Time</th><th>Card UID</th><th>Vehicle</th><th>Amount</th><th>Payment ID</th><th>Status</th></tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                                <tr class="loader-row"><td colspan="6"><span class="spinner"></span>Loading transactions…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mobile-cards-list" id="historyMobileList"></div>
+                </div>
+                <div id="historyCount" style="margin-top:14px;font-size:0.8rem;color:var(--text-muted);"></div>
+            </div>
+        </div>
+
+        <!-- ── ALL CARDS ── -->
+        <div id="allcards" class="tab-pane">
+            <div class="section-header">
+                <div>
+                    <div class="section-title">All Registered Cards</div>
+                    <div class="section-sub">Manage user cards, status, and vehicle type</div>
+                </div>
+                <button class="btn btn-outline" onclick="loadAllCards()">
+                    <i class="fa-solid fa-rotate-right"></i> Refresh
+                </button>
+            </div>
+
+            <div class="search-bar">
+                <div class="search-input-wrap">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" id="cardSearch" placeholder="Search by name, UID, vehicle…" oninput="filterCards()">
+                </div>
+                <select class="form-input" id="cardTypeFilter" onchange="filterCards()" style="width:160px;">
+                    <option value="">All types</option>
+                    <option value="EV">EV only</option>
+                    <option value="ICE">ICE only</option>
+                </select>
+                <select class="form-input" id="cardStatusFilter" onchange="filterCards()" style="width:160px;">
+                    <option value="">All status</option>
+                    <option value="active">Active</option>
+                    <option value="suspended">Suspended</option>
+                </select>
+            </div>
+
+            <div class="card" style="max-width:1100px;">
+                <div class="mobile-table-wrap">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr><th>Name</th><th>Card UID</th><th>Vehicle ID</th><th>Type</th><th>Balance</th><th>Registered</th><th>Status</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody id="allCardsBody">
+                                <tr class="loader-row"><td colspan="8"><span class="spinner"></span>Fetching cards…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mobile-cards-list" id="allCardsMobileList"></div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- end .content -->
+</div><!-- end .main -->
+
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- BOTTOM NAV (mobile) -->
+<div class="bottom-nav">
+    <div class="bottom-nav-inner">
+        <div class="bnav-item active" id="bnav-dashboard" onclick="switchTab('dashboard', null); setBottomNav('dashboard');">
+            <i class="fa-solid fa-gauge-high"></i>
+            Overview
+        </div>
+        <div class="bnav-item" id="bnav-recharge" onclick="switchTab('recharge', null); setBottomNav('recharge');">
+            <i class="fa-solid fa-wallet"></i>
+            Recharge
+        </div>
+        <div class="bnav-item" id="bnav-register" onclick="switchTab('register', null); setBottomNav('register');">
+            <i class="fa-solid fa-id-card-clip"></i>
+            Register
+        </div>
+        <div class="bnav-item" id="bnav-history" onclick="switchTab('history', null); loadHistory(); setBottomNav('history');">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            History
+        </div>
+        <div class="bnav-item" id="bnav-allcards" onclick="switchTab('allcards', null); loadAllCards(); setBottomNav('allcards');">
+            <i class="fa-solid fa-layer-group"></i>
+            Cards
+        </div>
     </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
 
 <script>
-    // ==========================================
-    // CONFIGURATION
-    // ==========================================
-    const firebaseConfig = {
-        apiKey: "AIzaSyCBAlNfSmejLLhYD45qIMC8s5pFbh5yB4A",
-        authDomain: "smart-tollgate-78526.firebaseapp.com",
-        databaseURL: "https://smart-tollgate-78526-default-rtdb.firebaseio.com",
-        projectId: "smart-tollgate-78526",
-        storageBucket: "smart-tollgate-78526.firebasestorage.app",
-        messagingSenderId: "838873522197",
-        appId: "1:838873522197:web:87ae7feedc279561166e1c",
-        measurementId: "G-SB5RGKH5HE"
-    };
-    const RAZORPAY_KEY_ID = "rzp_test_3WgTq9ybOpe62Y";
-    const APPS_SCRIPT_WEBHOOK = "https://script.google.com/macros/s/AKfycby3csphaMUCF_EKJegBRE-XugzRb1pKh2SM0mSv1_pA3Vxpi5N1uYJKSBRRaXnlL62ycQ/exec";
+// ============================================================
+// MOBILE SIDEBAR & NAV
+// ============================================================
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+}
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+function closeSidebar() {
+    document.querySelector('.sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('open');
+}
 
-    let currentUserData = {};
-    let currentUid = "";
+function setBottomNav(tabId) {
+    document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
+    const el = document.getElementById('bnav-' + tabId);
+    if (el) el.classList.add('active');
+}
 
-    // ==========================================
-    // UI TAB SWITCHING
-    // ==========================================
-    function switchTab(tabId, element) {
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        element.classList.add('active');
+function isMobile() { return window.innerWidth <= 768; }
+
+// ============================================================
+// CONFIG
+// ============================================================
+const firebaseConfig = {
+    apiKey: "AIzaSyCBAlNfSmejLLhYD45qIMC8s5pFbh5yB4A",
+    authDomain: "smart-tollgate-78526.firebaseapp.com",
+    databaseURL: "https://smart-tollgate-78526-default-rtdb.firebaseio.com",
+    projectId: "smart-tollgate-78526",
+    storageBucket: "smart-tollgate-78526.firebasestorage.app",
+    messagingSenderId: "838873522197",
+    appId: "1:838873522197:web:87ae7feedc279561166e1c",
+    measurementId: "G-SB5RGKH5HE"
+};
+const RAZORPAY_KEY_ID = "rzp_test_3WgTq9ybOpe62Y";
+const APPS_SCRIPT_WEBHOOK = "https://script.google.com/macros/s/AKfycby3csphaMUCF_EKJegBRE-XugzRb1pKh2SM0mSv1_pA3Vxpi5N1uYJKSBRRaXnlL62ycQ/exec";
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let currentUserData = {};
+let currentUid = "";
+let selectedVehicleType = "";
+let allHistoryData = [];
+let allCardsData = [];
+let rechargeChart, fleetChart;
+
+// ============================================================
+// THEME
+// ============================================================
+function toggleTheme() {
+    const html = document.documentElement;
+    html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+    if (rechargeChart) updateChartTheme();
+}
+
+// ============================================================
+// TAB NAVIGATION
+// ============================================================
+const sectionNames = {
+    dashboard: 'Overview',
+    recharge: 'Recharge Card',
+    register: 'Register Card',
+    history: 'Transactions',
+    allcards: 'All Cards'
+};
+
+function switchTab(tabId, el) {
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    if (el) el.classList.add('active');
+    document.getElementById('topbarSection').textContent = sectionNames[tabId] || tabId;
+}
+
+// ============================================================
+// TOAST NOTIFICATIONS
+// ============================================================
+function toast(title, msg, type = 'info') {
+    const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.innerHTML = `
+        <i class="toast-icon fa-solid ${icons[type]}"></i>
+        <div class="toast-body">
+            <div class="toast-title">${title}</div>
+            <div class="toast-msg">${msg}</div>
+        </div>`;
+    document.getElementById('toastContainer').appendChild(t);
+    setTimeout(() => { t.classList.add('fadeOut'); setTimeout(() => t.remove(), 300); }, 4000);
+}
+
+// ============================================================
+// VEHICLE TYPE SELECTION
+// ============================================================
+function selectVehicleType(type) {
+    selectedVehicleType = type;
+    document.getElementById('vtype-ev').className = 'vtype-option' + (type === 'EV' ? ' selected-ev' : '');
+    document.getElementById('vtype-ice').className = 'vtype-option' + (type === 'ICE' ? ' selected-ice' : '');
+}
+
+// ============================================================
+// REGISTRATION
+// ============================================================
+function registerCard() {
+    const uid = document.getElementById('regUid').value.trim().toUpperCase();
+    const name = document.getElementById('regName').value.trim();
+    const mobile = document.getElementById('regMobile').value.trim();
+    const vehicle = document.getElementById('regVehicle').value.trim().toUpperCase();
+    const email = document.getElementById('regEmail').value.trim();
+    const balance = parseFloat(document.getElementById('regBalance').value) || 0;
+    const status = document.getElementById('regStatus').value;
+
+    if (!uid || !name || !mobile || !vehicle || !selectedVehicleType) {
+        toast('Validation Error', 'Please fill all required fields and select a vehicle type.', 'error');
+        return;
     }
 
-    // ==========================================
-    // REGISTRATION LOGIC
-    // ==========================================
-    function registerCard() {
-        const uid = document.getElementById('regUid').value.trim();
-        const data = {
-            name: document.getElementById('regName').value,
-            mobile: document.getElementById('regMobile').value,
-            vehicle_id: document.getElementById('regVehicle').value,
-            email: document.getElementById('regEmail').value,
-            date_created: new Date().toISOString().split('T')[0],
-            balance: 0 
-        };
+    if (mobile.length !== 10 || isNaN(mobile)) {
+        toast('Invalid Mobile', 'Enter a valid 10-digit mobile number.', 'error');
+        return;
+    }
 
-        if(!uid || !data.name || !data.mobile || !data.vehicle_id) {
-            alert("Please fill all fields!");
-            return;
+    const data = {
+        name,
+        mobile,
+        vehicle_id: vehicle,
+        email,
+        vehicle_type: selectedVehicleType,   // EV or ICE
+        toll_discount: selectedVehicleType === 'EV' ? 20 : 0,  // % discount
+        balance,
+        status,
+        date_created: new Date().toISOString().split('T')[0]
+    };
+
+    db.ref('Toll_Users/' + uid).set(data)
+        .then(() => {
+            toast('Card Registered!', `${name}'s ${selectedVehicleType} card activated successfully.`, 'success');
+            document.querySelectorAll('#register input, #register select').forEach(el => el.value = '');
+            selectVehicleType('');
+            selectedVehicleType = '';
+            document.getElementById('vtype-ev').className = 'vtype-option';
+            document.getElementById('vtype-ice').className = 'vtype-option';
+        })
+        .catch(err => toast('Firebase Error', err.message, 'error'));
+}
+
+// ============================================================
+// FETCH CARD DETAILS
+// ============================================================
+function checkBalance() {
+    currentUid = document.getElementById('rechUid').value.trim().toUpperCase();
+    if (!currentUid) { toast('Missing UID', 'Please enter a Card UID.', 'error'); return; }
+
+    db.ref('Toll_Users/' + currentUid).once('value').then(snap => {
+        if (snap.exists()) {
+            currentUserData = snap.val();
+            const u = currentUserData;
+            const isEV = u.vehicle_type === 'EV';
+
+            document.getElementById('dispName').textContent = u.name || '—';
+            document.getElementById('profileAvatar').textContent = (u.name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+            document.getElementById('dispUidTag').textContent = currentUid;
+            document.getElementById('dispVehicle').textContent = u.vehicle_id || '—';
+            document.getElementById('dispMobile').textContent = u.mobile || '—';
+            document.getElementById('dispDate').textContent = u.date_created || '—';
+            document.getElementById('dispBalance').textContent = u.balance || 0;
+
+            // Vehicle type badge
+            const badge = document.getElementById('vTypeBadge');
+            badge.className = 'v-badge ' + (isEV ? 'ev' : 'ice');
+            badge.innerHTML = isEV ? '⚡ Electric (EV)' : '⛽ Combustion (ICE)';
+
+            // EV discount
+            const disc = document.getElementById('discountBadge');
+            const evNote = document.getElementById('evDiscountNote');
+            if (isEV) {
+                disc.style.display = 'inline-block';
+                disc.textContent = '20% Toll Discount';
+                evNote.style.display = 'block';
+            } else {
+                disc.style.display = 'none';
+                evNote.style.display = 'none';
+            }
+
+            document.getElementById('userDetailsCard').style.display = 'block';
+            toast('Card Found', `Welcome, ${u.name}!`, 'success');
+        } else {
+            document.getElementById('userDetailsCard').style.display = 'none';
+            toast('Not Found', 'Card UID not found in database.', 'error');
+        }
+    });
+}
+
+// ============================================================
+// PAYMENT & RECHARGE
+// ============================================================
+function initiatePayment() {
+    const amount = parseInt(document.getElementById('rechargeAmount').value);
+    if (!amount || amount <= 0) { toast('Invalid Amount', 'Enter a valid amount.', 'error'); return; }
+
+    var options = {
+        key: RAZORPAY_KEY_ID,
+        amount: amount * 100,
+        currency: "INR",
+        name: "Smart Toll System",
+        description: `Card Recharge — ${currentUid}`,
+        handler: function(response) { handleSuccessfulRecharge(amount, response.razorpay_payment_id); },
+        prefill: { name: currentUserData.name, email: currentUserData.email, contact: currentUserData.mobile },
+        theme: { color: "#6366f1" }
+    };
+    new Razorpay(options).open();
+}
+
+function handleSuccessfulRecharge(amountAdded, paymentId) {
+    const newBalance = (currentUserData.balance || 0) + amountAdded;
+    db.ref('Toll_Users/' + currentUid).update({ balance: newBalance }).then(() => {
+        document.getElementById('dispBalance').textContent = newBalance;
+        currentUserData.balance = newBalance;
+        document.getElementById('rechargeAmount').value = '';
+        toast('Payment Successful!', `₹${amountAdded} added. New balance: ₹${newBalance}`, 'success');
+        logToGoogleSheets(amountAdded, paymentId);
+    });
+}
+
+function logToGoogleSheets(amount, paymentId) {
+    const payload = {
+        card_uid: currentUid,
+        vehicle_id: currentUserData.vehicle_id,
+        vehicle_type: currentUserData.vehicle_type || 'Unknown',
+        amount,
+        payment_id: paymentId
+    };
+    fetch(APPS_SCRIPT_WEBHOOK, { method: 'POST', body: JSON.stringify(payload) })
+        .then(r => r.json())
+        .then(d => console.log('Logged to Sheets:', d))
+        .catch(e => console.warn('Sheet log failed:', e));
+}
+
+// ============================================================
+// TRANSACTION HISTORY
+// ============================================================
+function loadHistory() {
+    const tbody = document.getElementById('historyTableBody');
+    tbody.innerHTML = '<tr class="loader-row"><td colspan="6"><span class="spinner"></span>Loading…</td></tr>';
+
+    fetch(APPS_SCRIPT_WEBHOOK)
+        .then(r => r.json())
+        .then(data => {
+            allHistoryData = data.filter(r => r.uid).reverse();
+            renderHistory(allHistoryData);
+        })
+        .catch(() => {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--danger);padding:30px;">Failed to load. Check Apps Script deployment.</td></tr>`;
+        });
+}
+
+function renderHistory(data) {
+    const tbody = document.getElementById('historyTableBody');
+    const mobileList = document.getElementById('historyMobileList');
+    const count = document.getElementById('historyCount');
+    if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No transactions found.</p></div></td></tr>';
+        mobileList.innerHTML = '<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No transactions found.</p></div>';
+        count.textContent = '';
+        return;
+    }
+    tbody.innerHTML = data.map(row => `
+        <tr>
+            <td>${new Date(row.date).toLocaleString()}</td>
+            <td><span class="mono">${row.uid}</span></td>
+            <td>${row.vehicle || '—'}</td>
+            <td style="color:var(--success);font-weight:700;font-family:'Space Mono',monospace;">+ ₹${row.amount}</td>
+            <td><span class="mono" style="font-size:0.78rem;">${row.payment_id}</span></td>
+            <td><span class="status-badge success"><i class="fa-solid fa-circle-check" style="font-size:0.6rem;"></i> Success</span></td>
+        </tr>`).join('');
+
+    mobileList.innerHTML = data.map(row => `
+        <div class="m-card">
+            <div class="m-card-top">
+                <div>
+                    <div class="m-card-name" style="color:var(--success);font-family:'Space Mono',monospace;">+ ₹${row.amount}</div>
+                    <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">${new Date(row.date).toLocaleString()}</div>
+                </div>
+                <span class="status-badge success"><i class="fa-solid fa-circle-check" style="font-size:0.6rem;"></i> Success</span>
+            </div>
+            <hr class="m-card-divider">
+            <div class="m-card-row">
+                <span class="m-card-label">Card UID</span>
+                <span class="mono">${row.uid}</span>
+            </div>
+            <div class="m-card-row">
+                <span class="m-card-label">Vehicle</span>
+                <span>${row.vehicle || '—'}</span>
+            </div>
+            <div class="m-card-row">
+                <span class="m-card-label">Payment ID</span>
+                <span class="mono" style="font-size:0.72rem;">${(row.payment_id||'').slice(0,18)}…</span>
+            </div>
+        </div>`).join('');
+
+    count.textContent = `Showing ${data.length} transaction${data.length !== 1 ? 's' : ''}`;
+}
+
+function filterHistory() {
+    const q = document.getElementById('historySearch').value.toLowerCase();
+    const f = document.getElementById('historyFilter').value;
+    let filtered = allHistoryData.filter(r => {
+        const match = (r.uid + r.vehicle + r.payment_id).toLowerCase().includes(q);
+        const a = parseFloat(r.amount);
+        const inRange = f === '' || (f === 'low' && a < 200) || (f === 'mid' && a >= 200 && a <= 500) || (f === 'high' && a > 500);
+        return match && inRange;
+    });
+    renderHistory(filtered);
+}
+
+// ============================================================
+// ALL CARDS
+// ============================================================
+function loadAllCards() {
+    const tbody = document.getElementById('allCardsBody');
+    tbody.innerHTML = '<tr class="loader-row"><td colspan="8"><span class="spinner"></span>Fetching…</td></tr>';
+
+    db.ref('Toll_Users').once('value').then(snap => {
+        if (!snap.exists()) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);">No cards registered yet.</td></tr>'; return; }
+        allCardsData = [];
+        snap.forEach(child => allCardsData.push({ uid: child.key, ...child.val() }));
+        allCardsData.sort((a, b) => (b.date_created || '').localeCompare(a.date_created || ''));
+        renderCards(allCardsData);
+    });
+}
+
+function renderCards(data) {
+    const tbody = document.getElementById('allCardsBody');
+    const mobileList = document.getElementById('allCardsMobileList');
+    if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);">No cards match.</td></tr>';
+        mobileList.innerHTML = '<div class="empty-state"><i class="fa-solid fa-layer-group"></i><p>No cards match.</p></div>';
+        return;
+    }
+    tbody.innerHTML = data.map(u => {
+        const isEV = u.vehicle_type === 'EV';
+        const isActive = u.status !== 'suspended';
+        return `<tr>
+            <td><strong>${u.name || '—'}</strong></td>
+            <td><span class="mono">${u.uid}</span></td>
+            <td>${u.vehicle_id || '—'}</td>
+            <td><span class="v-badge ${isEV ? 'ev' : 'ice'}">${isEV ? '⚡ EV' : '⛽ ICE'}</span></td>
+            <td style="font-family:'Space Mono',monospace;color:var(--success);">₹${u.balance || 0}</td>
+            <td style="color:var(--text-muted);font-size:0.82rem;">${u.date_created || '—'}</td>
+            <td><span class="status-badge ${isActive ? 'success' : 'danger'}">${isActive ? 'Active' : 'Suspended'}</span></td>
+            <td>
+                <button class="btn btn-outline" style="padding:6px 12px;font-size:0.8rem;" onclick="toggleCardStatus('${u.uid}', '${u.status || 'active'}')">
+                    <i class="fa-solid ${isActive ? 'fa-pause' : 'fa-play'}"></i> ${isActive ? 'Suspend' : 'Activate'}
+                </button>
+            </td>
+        </tr>`;
+    }).join('');
+
+    mobileList.innerHTML = data.map(u => {
+        const isEV = u.vehicle_type === 'EV';
+        const isActive = u.status !== 'suspended';
+        return `<div class="m-card">
+            <div class="m-card-top">
+                <div>
+                    <div class="m-card-name">${u.name || '—'}</div>
+                    <div style="display:flex;gap:6px;align-items:center;margin-top:5px;flex-wrap:wrap;">
+                        <span class="v-badge ${isEV ? 'ev' : 'ice'}">${isEV ? '⚡ EV' : '⛽ ICE'}</span>
+                        <span class="status-badge ${isActive ? 'success' : 'danger'}" style="font-size:0.68rem;padding:2px 7px;">${isActive ? 'Active' : 'Suspended'}</span>
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-family:'Space Mono',monospace;color:var(--success);font-size:1rem;font-weight:700;">₹${u.balance || 0}</div>
+                    <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">${u.date_created || ''}</div>
+                </div>
+            </div>
+            <hr class="m-card-divider">
+            <div class="m-card-row">
+                <span class="m-card-label">Card UID</span>
+                <span class="mono">${u.uid}</span>
+            </div>
+            <div class="m-card-row">
+                <span class="m-card-label">Vehicle ID</span>
+                <span>${u.vehicle_id || '—'}</span>
+            </div>
+            <div style="margin-top:8px;">
+                <button class="btn btn-outline btn-full" style="padding:9px 12px;font-size:0.82rem;" onclick="toggleCardStatus('${u.uid}', '${u.status || 'active'}')">
+                    <i class="fa-solid ${isActive ? 'fa-pause' : 'fa-play'}"></i> ${isActive ? 'Suspend Card' : 'Activate Card'}
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function toggleCardStatus(uid, currentStatus) {
+    const newStatus = currentStatus === 'suspended' ? 'active' : 'suspended';
+    db.ref('Toll_Users/' + uid).update({ status: newStatus }).then(() => {
+        toast('Status Updated', `Card ${uid} is now ${newStatus}.`, newStatus === 'active' ? 'success' : 'info');
+        loadAllCards();
+    });
+}
+
+function filterCards() {
+    const q = document.getElementById('cardSearch').value.toLowerCase();
+    const type = document.getElementById('cardTypeFilter').value;
+    const status = document.getElementById('cardStatusFilter').value;
+    const filtered = allCardsData.filter(u => {
+        const matchQ = (u.name + u.uid + u.vehicle_id).toLowerCase().includes(q);
+        const matchType = !type || u.vehicle_type === type;
+        const matchStatus = !status || (u.status || 'active') === status;
+        return matchQ && matchType && matchStatus;
+    });
+    renderCards(filtered);
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function refreshDashboard() {
+    db.ref('Toll_Users').once('value').then(snap => {
+        if (!snap.exists()) return;
+        let total = 0, ev = 0, ice = 0, cards = 0;
+        const recent = [];
+        snap.forEach(c => {
+            const u = c.val();
+            cards++;
+            total += u.balance || 0;
+            if (u.vehicle_type === 'EV') ev++; else ice++;
+            recent.push({ uid: c.key, ...u });
+        });
+        recent.sort((a, b) => (b.date_created || '').localeCompare(a.date_created || ''));
+
+        animateCount('statCards', cards);
+        animateCount('statTotal', total, '₹');
+        animateCount('statEV', ev);
+        animateCount('statICE', ice);
+        document.getElementById('statTotalSub').textContent = `Across ${cards} card${cards !== 1 ? 's' : ''}`;
+
+        // Recent registrations table
+        const tbody = document.getElementById('recentCardsBody');
+        const slice = recent.slice(0, 5);
+        tbody.innerHTML = slice.map(u => {
+            const isEV = u.vehicle_type === 'EV';
+            const isActive = u.status !== 'suspended';
+            return `<tr>
+                <td><strong>${u.name || '—'}</strong></td>
+                <td><span class="mono">${u.uid}</span></td>
+                <td>${u.vehicle_id || '—'}</td>
+                <td><span class="v-badge ${isEV ? 'ev' : 'ice'}">${isEV ? '⚡ EV' : '⛽ ICE'}</span></td>
+                <td style="font-family:'Space Mono',monospace;color:var(--success);">₹${u.balance || 0}</td>
+                <td><span class="status-badge ${isActive ? 'success' : 'danger'}">${isActive ? 'Active' : 'Suspended'}</span></td>
+            </tr>`;
+        }).join('') || '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">No cards yet.</td></tr>';
+
+        const recentMobile = document.getElementById('recentMobileList');
+        if (recentMobile) {
+            recentMobile.innerHTML = slice.map(u => {
+                const isEV = u.vehicle_type === 'EV';
+                const isActive = u.status !== 'suspended';
+                return `<div class="m-card">
+                    <div class="m-card-top">
+                        <div>
+                            <div class="m-card-name">${u.name || '—'}</div>
+                            <div style="display:flex;gap:6px;align-items:center;margin-top:5px;">
+                                <span class="v-badge ${isEV ? 'ev' : 'ice'}">${isEV ? '⚡ EV' : '⛽ ICE'}</span>
+                                <span class="status-badge ${isActive ? 'success' : 'danger'}" style="font-size:0.68rem;padding:2px 7px;">${isActive ? 'Active' : 'Suspended'}</span>
+                            </div>
+                        </div>
+                        <div style="font-family:'Space Mono',monospace;color:var(--success);font-size:1rem;font-weight:700;">₹${u.balance || 0}</div>
+                    </div>
+                    <hr class="m-card-divider">
+                    <div class="m-card-row">
+                        <span class="m-card-label">Card UID</span><span class="mono">${u.uid}</span>
+                    </div>
+                    <div class="m-card-row">
+                        <span class="m-card-label">Vehicle</span><span>${u.vehicle_id || '—'}</span>
+                    </div>
+                </div>`;
+            }).join('') || '<div class="empty-state"><i class="fa-solid fa-layer-group"></i><p>No cards yet.</p></div>';
         }
 
-        db.ref('Toll_Users/' + uid).set(data).then(() => {
-            alert("Card Registered Successfully!");
-            document.querySelectorAll('#register input').forEach(input => input.value = '');
-        }).catch((error) => { alert("Error: " + error.message); });
-    }
+        // Update fleet chart
+        if (fleetChart) {
+            fleetChart.data.datasets[0].data = [ev, ice];
+            fleetChart.update();
+        }
+    });
+}
 
-    // ==========================================
-    // FETCH DETAILS LOGIC
-    // ==========================================
-    function checkBalance() {
-        currentUid = document.getElementById('rechUid').value.trim();
-        if(!currentUid) { alert("Enter a Card UID"); return; }
+function animateCount(id, target, prefix = '') {
+    const el = document.getElementById(id);
+    let start = 0;
+    const step = Math.ceil(target / 40);
+    const interval = setInterval(() => {
+        start = Math.min(start + step, target);
+        el.textContent = prefix + start.toLocaleString();
+        if (start >= target) clearInterval(interval);
+    }, 20);
+}
 
-        db.ref('Toll_Users/' + currentUid).once('value').then((snapshot) => {
-            if(snapshot.exists()) {
-                currentUserData = snapshot.val();
-                document.getElementById('dispName').innerText = currentUserData.name;
-                document.getElementById('dispVehicle').innerText = currentUserData.vehicle_id;
-                document.getElementById('dispBalance').innerText = currentUserData.balance;
-                document.getElementById('userDetailsCard').style.display = 'block';
-            } else {
-                alert("Card UID not found in database.");
-                document.getElementById('userDetailsCard').style.display = 'none';
+function initCharts() {
+    const isDark = document.documentElement.dataset.theme !== 'light';
+    const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+    const textColor = isDark ? '#8b8ba0' : '#9090a8';
+
+    // Recharge volume chart
+    const rCtx = document.getElementById('rechargeChart').getContext('2d');
+    rechargeChart = new Chart(rCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Recharge (₹)',
+                data: [1200, 1900, 800, 2400, 1600, 3000, 2200],
+                backgroundColor: 'rgba(99,102,241,0.6)',
+                borderColor: 'rgba(99,102,241,0.8)',
+                borderWidth: 1,
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: gridColor }, ticks: { color: textColor } },
+                y: { grid: { color: gridColor }, ticks: { color: textColor, callback: v => '₹' + v } }
             }
-        });
-    }
+        }
+    });
 
-    // ==========================================
-    // RAZORPAY & RECHARGE LOGIC
-    // ==========================================
-    function initiatePayment() {
-        const amount = parseInt(document.getElementById('rechargeAmount').value);
-        if(!amount || amount <= 0) { alert("Enter a valid amount!"); return; }
-
-        var options = {
-            "key": RAZORPAY_KEY_ID, 
-            "amount": amount * 100, 
-            "currency": "INR",
-            "name": "Smart Toll System",
-            "description": "Toll Card Recharge",
-            "handler": function (response) {
-                handleSuccessfulRecharge(amount, response.razorpay_payment_id);
-            },
-            "prefill": {
-                "name": currentUserData.name,
-                "email": currentUserData.email,
-                "contact": currentUserData.mobile
-            },
-            "theme": { "color": "#4f46e5" }
-        };
-        var rzp = new Razorpay(options);
-        rzp.open();
-    }
-
-    function handleSuccessfulRecharge(amountAdded, paymentId) {
-        const newBalance = currentUserData.balance + amountAdded;
-        db.ref('Toll_Users/' + currentUid).update({ balance: newBalance }).then(() => {
-            document.getElementById('dispBalance').innerText = newBalance;
-            currentUserData.balance = newBalance;
-            alert("Payment Successful! Balance updated.");
-            document.getElementById('rechargeAmount').value = '';
-            logToGoogleSheets(amountAdded, paymentId);
-        });
-    }
-
-    function logToGoogleSheets(amount, paymentId) {
-        const payload = {
-            card_uid: currentUid,
-            vehicle_id: currentUserData.vehicle_id,
-            amount: amount,
-            payment_id: paymentId
-        };
-        fetch(APPS_SCRIPT_WEBHOOK, {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        }).then(response => response.json()).then(data => console.log("Logged:", data));
-    }
-
-    // ==========================================
-    // FETCH HISTORY FROM GOOGLE SHEETS
-    // ==========================================
-    function loadHistory() {
-        const tbody = document.getElementById('historyTableBody');
-        const loader = document.getElementById('tableLoader');
-        
-        tbody.innerHTML = ''; // Clear table
-        loader.style.display = 'block'; // Show spinner
-
-        fetch(APPS_SCRIPT_WEBHOOK)
-        .then(response => response.json())
-        .then(data => {
-            loader.style.display = 'none';
-            
-            // Reverse data to show newest first
-            data.reverse().forEach(row => {
-                // Ensure row actually has data before rendering
-                if(row.uid) { 
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${new Date(row.date).toLocaleString()}</td>
-                        <td><strong>${row.uid}</strong></td>
-                        <td>${row.vehicle}</td>
-                        <td style="color: #10b981; font-weight: bold;">+ ₹${row.amount}</td>
-                        <td style="font-family: monospace; font-size: 0.9em;">${row.payment_id}</td>
-                        <td><span class="badge">Success</span></td>
-                    `;
-                    tbody.appendChild(tr);
+    // Fleet donut
+    const fCtx = document.getElementById('fleetChart').getContext('2d');
+    fleetChart = new Chart(fCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Electric (EV)', 'Combustion (ICE)'],
+            datasets: [{
+                data: [0, 0],
+                backgroundColor: ['rgba(52,211,153,0.8)', 'rgba(251,146,60,0.8)'],
+                borderColor: ['rgba(52,211,153,1)', 'rgba(251,146,60,1)'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: textColor, padding: 16, usePointStyle: true }
                 }
-            });
-        })
-        .catch(error => {
-            loader.style.display = 'none';
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Error loading history. Make sure Apps Script 'doGet' is deployed.</td></tr>`;
-        });
-    }
-</script>
+            },
+            cutout: '65%'
+        }
+    });
+}
 
+function updateChartTheme() {
+    const isDark = document.documentElement.dataset.theme !== 'light';
+    const textColor = isDark ? '#8b8ba0' : '#9090a8';
+    const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+
+    [rechargeChart].forEach(c => {
+        if (!c) return;
+        c.options.scales.x.ticks.color = textColor;
+        c.options.scales.y.ticks.color = textColor;
+        c.options.scales.x.grid.color = gridColor;
+        c.options.scales.y.grid.color = gridColor;
+        c.update();
+    });
+    if (fleetChart) {
+        fleetChart.options.plugins.legend.labels.color = textColor;
+        fleetChart.update();
+    }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+    initCharts();
+    refreshDashboard();
+});
+</script>
 </body>
 </html>
