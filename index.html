@@ -1,1146 +1,971 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Toll — Admin Console</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartToll — My Account</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-:root {
-    --bg-base:#0a0a0f; --bg-surface:#111118; --bg-card:#16161f; --bg-card-hover:#1c1c28; --bg-input:#0f0f17;
-    --border:rgba(255,255,255,0.07); --text-primary:#f0f0f8; --text-secondary:#8b8ba0; --text-muted:#55556a;
-    --accent:#6366f1; --accent-glow:rgba(99,102,241,0.3); --accent-hover:#818cf8;
-    --success:#22d3a0; --success-bg:rgba(34,211,160,0.1);
-    --warning:#fb923c; --warning-bg:rgba(251,146,60,0.1);
-    --danger:#f87171; --danger-bg:rgba(248,113,113,0.1);
-    --ev-color:#34d399; --ev-bg:rgba(52,211,153,0.12);
-    --fuel-color:#fb923c; --fuel-bg:rgba(251,146,60,0.12);
-    --hybrid-color:#a78bfa; --hybrid-bg:rgba(167,139,250,0.12);
-    --sidebar-w:260px; --radius:12px; --radius-sm:8px;
+:root{
+  --bg-base:#08080e;--bg-surface:#101018;--bg-card:#14141e;--bg-card-hover:#1a1a28;--bg-input:#0d0d17;
+  --border:rgba(255,255,255,0.07);--text-primary:#eeeef8;--text-secondary:#8888a4;--text-muted:#55556a;
+  --accent:#7c3aed;--accent-2:#6366f1;--accent-glow:rgba(124,58,237,0.28);--accent-hover:#8b5cf6;
+  --success:#10b981;--success-bg:rgba(16,185,129,0.1);--success-glow:rgba(16,185,129,0.25);
+  --warning:#f59e0b;--warning-bg:rgba(245,158,11,0.1);
+  --danger:#ef4444;--danger-bg:rgba(239,68,68,0.1);
+  --ev-color:#34d399;--ev-bg:rgba(52,211,153,0.1);
+  --fuel-color:#fb923c;--fuel-bg:rgba(251,146,60,0.1);
+  --hybrid-color:#a78bfa;--hybrid-bg:rgba(167,139,250,0.1);
+  --radius:14px;--radius-sm:9px;--radius-xs:6px;
 }
-[data-theme="light"] {
-    --bg-base:#f0f0f7; --bg-surface:#e8e8f0; --bg-card:#ffffff; --bg-card-hover:#f8f8fc; --bg-input:#f4f4fa;
-    --border:rgba(0,0,0,0.08); --text-primary:#111126; --text-secondary:#555575; --text-muted:#9090a8;
+[data-theme="light"]{
+  --bg-base:#f4f4f9;--bg-surface:#ebebf4;--bg-card:#ffffff;--bg-card-hover:#f8f8fc;--bg-input:#f0f0f8;
+  --border:rgba(0,0,0,0.08);--text-primary:#0d0d20;--text-secondary:#55557a;--text-muted:#9090b0;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:var(--bg-base);color:var(--text-primary);display:flex;height:100vh;overflow:hidden;transition:background .3s,color .3s}
+html,body{height:100%}
+body{font-family:'DM Sans',sans-serif;background:var(--bg-base);color:var(--text-primary);display:flex;flex-direction:column;min-height:100vh;transition:background .3s,color .3s}
 
-/* SIDEBAR */
-.sidebar{width:var(--sidebar-w);background:var(--bg-surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;z-index:10;transition:transform .3s ease;overflow-y:auto}
-.sidebar-logo{padding:22px 18px 16px;display:flex;align-items:center;gap:11px;border-bottom:1px solid var(--border);flex-shrink:0}
-.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),#a78bfa);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;color:white;flex-shrink:0;box-shadow:0 0 16px var(--accent-glow)}
-.logo-text{font-family:'Space Mono',monospace;font-size:.95rem;font-weight:700;line-height:1.1;color:var(--text-primary)}
-.logo-text span{color:var(--accent)}
-.sidebar-label{padding:16px 16px 5px;font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}
-.nav-item{margin:2px 9px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;gap:10px;font-size:.88rem;font-weight:500;color:var(--text-secondary);transition:all .2s}
-.nav-item:hover{background:var(--bg-card);color:var(--text-primary)}
-.nav-item.active{background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(167,139,250,.1));color:var(--accent-hover);border:1px solid rgba(99,102,241,.2)}
-.nav-icon{width:16px;text-align:center;font-size:.85rem}
-.sidebar-footer{margin-top:auto;padding:13px;border-top:1px solid var(--border);display:flex;align-items:center;flex-shrink:0}
-.theme-toggle{width:32px;height:32px;border-radius:7px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;transition:all .2s;margin-left:auto}
-.theme-toggle:hover{background:var(--bg-card-hover);color:var(--text-primary)}
+/* ── HEADER ── */
+.header{background:var(--bg-surface);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50;flex-shrink:0}
+.header-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--accent-2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;flex-shrink:0}
+.logo-text{font-family:'Space Mono',monospace;font-size:.88rem;font-weight:700;color:var(--text-primary);line-height:1.1}
+.logo-text span{color:var(--accent-hover)}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.header-uid{font-family:'Space Mono',monospace;font-size:.7rem;background:var(--accent-glow);color:var(--accent-hover);padding:4px 9px;border-radius:20px;display:none}
+.theme-btn{width:32px;height:32px;border-radius:8px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;transition:all .2s}
+.theme-btn:hover{background:var(--bg-card-hover);color:var(--text-primary)}
 
-/* MAIN */
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-.topbar{background:var(--bg-surface);border-bottom:1px solid var(--border);padding:0 26px;height:58px;display:flex;align-items:center;gap:12px;flex-shrink:0}
-.topbar-title{font-family:'Space Mono',monospace;font-size:.85rem;color:var(--text-secondary)}
-.topbar-title span{color:var(--text-primary);font-weight:700}
-.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
-.status-dot{width:7px;height:7px;background:var(--success);border-radius:50%;box-shadow:0 0 7px var(--success);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.8)}}
-.live-text{font-size:.73rem;color:var(--success);font-weight:600;letter-spacing:.05em}
-.content{flex:1;overflow-y:auto;padding:26px}
-.tab-pane{display:none;animation:slideUp .28s ease}
+/* ── NAV TABS ── */
+.nav-tabs{background:var(--bg-surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:4px;flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{padding:12px 16px;font-size:.83rem;font-weight:600;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;display:flex;align-items:center;gap:7px;user-select:none}
+.nav-tab i{font-size:.78rem}
+.nav-tab:hover{color:var(--text-primary)}
+.nav-tab.active{color:var(--accent-hover);border-bottom-color:var(--accent-hover)}
+
+/* ── MAIN ── */
+.main{flex:1;overflow-y:auto;padding:28px 24px 60px}
+.tab-pane{display:none;animation:slideUp .26s ease}
 .tab-pane.active{display:block}
 @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.container{max-width:900px;margin:0 auto}
 
-/* CARDS */
-.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;transition:background .2s}
-.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-.card-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted)}
+/* ── CARDS ── */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:22px}
+.card+.card{margin-top:16px}
+.card-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:16px}
 
-/* STATS */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:22px}
-.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:17px 19px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
-.stat-card:hover{border-color:var(--accent);transform:translateY(-2px)}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0}
-.stat-card:nth-child(1)::before{background:linear-gradient(90deg,var(--accent),#a78bfa)}
-.stat-card:nth-child(2)::before{background:linear-gradient(90deg,var(--success),#6ee7b7)}
-.stat-card:nth-child(3)::before{background:linear-gradient(90deg,var(--ev-color),#a7f3d0)}
-.stat-card:nth-child(4)::before{background:linear-gradient(90deg,var(--warning),#fde68a)}
-.stat-label{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}
-.stat-value{font-family:'Space Mono',monospace;font-size:1.65rem;font-weight:700;color:var(--text-primary)}
-.stat-icon{position:absolute;top:15px;right:15px;font-size:.95rem;color:var(--text-muted);opacity:.38}
-.stat-delta{font-size:.75rem;margin-top:5px;color:var(--success)}
+/* ── LOOKUP SECTION ── */
+.lookup-wrap{max-width:480px;margin:0 auto}
+.lookup-hero{text-align:center;margin-bottom:28px}
+.lookup-hero .icon-ring{width:62px;height:62px;border-radius:50%;background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(99,102,241,.15));border:1px solid rgba(124,58,237,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.4rem;color:var(--accent-hover)}
+.lookup-hero h1{font-size:1.3rem;font-weight:700;margin-bottom:6px}
+.lookup-hero p{font-size:.85rem;color:var(--text-secondary)}
+.input-icon-wrap{position:relative}
+.input-icon-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.82rem}
+.input-icon-wrap input{width:100%;padding:11px 12px 11px 34px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:'DM Sans',sans-serif;font-size:.9rem;transition:border-color .2s,box-shadow .2s}
+.input-icon-wrap input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.input-icon-wrap input::placeholder{color:var(--text-muted)}
 
-/* LAYOUTS */
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
-.form-grid .full{grid-column:span 2}
-
-/* FORMS */
-.form-group{display:flex;flex-direction:column;gap:6px}
-.form-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted)}
-.form-input{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;color:var(--text-primary);font-family:'DM Sans',sans-serif;font-size:.9rem;transition:border-color .2s,box-shadow .2s;width:100%}
-.form-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-.form-input::placeholder{color:var(--text-muted)}
-select.form-input{cursor:pointer}
-
-/* VEHICLE TYPE SELECTOR */
-.vtype-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
-.vtype-option{background:var(--bg-input);border:2px solid var(--border);border-radius:var(--radius-sm);padding:12px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .2s;position:relative;text-align:center}
-.vtype-option:hover{border-color:var(--text-muted)}
-.vtype-option.sel-ev{border-color:var(--ev-color);background:var(--ev-bg)}
-.vtype-option.sel-fuel{border-color:var(--fuel-color);background:var(--fuel-bg)}
-.vtype-option.sel-hybrid{border-color:var(--hybrid-color);background:var(--hybrid-bg)}
-.vtype-emoji{font-size:1.4rem}
-.vtype-lbl{font-weight:700;font-size:.8rem}
-.vtype-sub{font-size:.66rem;color:var(--text-muted);line-height:1.3}
-.vtype-check{position:absolute;top:6px;right:6px;width:15px;height:15px;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:.5rem;color:white}
-.vtype-option.sel-ev .vtype-check{display:flex;background:var(--ev-color)}
-.vtype-option.sel-fuel .vtype-check{display:flex;background:var(--fuel-color)}
-.vtype-option.sel-hybrid .vtype-check{display:flex;background:var(--hybrid-color)}
-
-/* BUTTONS */
-.btn{padding:10px 16px;border:none;border-radius:var(--radius-sm);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;text-decoration:none}
-.btn-primary{background:var(--accent);color:white;box-shadow:0 4px 13px var(--accent-glow)}
-.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
-.btn-success{background:var(--success);color:#001a12;box-shadow:0 4px 13px rgba(34,211,160,.28)}
+/* ── BUTTONS ── */
+.btn{padding:10px 18px;border:none;border-radius:var(--radius-sm);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.875rem;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;text-decoration:none}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;box-shadow:0 4px 14px var(--accent-glow)}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-success{background:var(--success);color:#fff;box-shadow:0 4px 14px var(--success-glow)}
 .btn-success:hover{opacity:.9;transform:translateY(-1px)}
 .btn-outline{background:transparent;color:var(--text-secondary);border:1px solid var(--border)}
-.btn-outline:hover{background:var(--bg-card);color:var(--text-primary);border-color:var(--text-muted)}
-.btn-warning{background:var(--warning-bg);color:var(--warning);border:1px solid rgba(251,146,60,.25)}
-.btn-warning:hover{background:var(--warning);color:#1a0800}
-.btn-danger{background:var(--danger-bg);color:var(--danger);border:1px solid rgba(248,113,113,.2)}
-.btn-danger:hover{background:var(--danger);color:white}
+.btn-outline:hover{background:var(--bg-card-hover);color:var(--text-primary)}
 .btn-full{width:100%}
-.btn-group{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
-.btn-sm{padding:6px 11px;font-size:.78rem}
+.btn-sm{padding:7px 13px;font-size:.78rem}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
 
-/* PROFILE */
-.profile-card{background:linear-gradient(135deg,rgba(99,102,241,.13),rgba(167,139,250,.07));border:1px solid rgba(99,102,241,.2);border-radius:var(--radius);padding:20px;margin-top:16px}
-.profile-header{display:flex;align-items:flex-start;gap:13px;margin-bottom:16px}
-.profile-avatar{width:48px;height:48px;border-radius:11px;background:linear-gradient(135deg,var(--accent),#a78bfa);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:white;flex-shrink:0;font-weight:700;font-family:'Space Mono',monospace}
-.profile-name{font-size:1rem;font-weight:700;margin-bottom:3px}
-.profile-uid{font-family:'Space Mono',monospace;font-size:.7rem;color:var(--accent);background:var(--accent-glow);padding:2px 7px;border-radius:4px;display:inline-block}
-.profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
-.profile-field{background:rgba(0,0,0,.2);border-radius:7px;padding:10px 12px}
-[data-theme="light"] .profile-field{background:rgba(255,255,255,.6)}
-.profile-field-label{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:4px}
-.profile-field-value{font-weight:600;font-size:.88rem}
-.balance-display{grid-column:span 3;background:rgba(34,211,160,.1);border:1px solid rgba(34,211,160,.2);border-radius:9px;padding:13px 15px;display:flex;align-items:center;justify-content:space-between}
-.balance-label{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--success)}
-.balance-amount{font-family:'Space Mono',monospace;font-size:1.8rem;font-weight:700;color:var(--success)}
-
-/* BADGES */
-.v-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:.7rem;font-weight:700;letter-spacing:.04em}
+/* ── PROFILE CARD ── */
+.profile-hero{background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(99,102,241,.08));border:1px solid rgba(124,58,237,.2);border-radius:var(--radius);padding:22px;margin-bottom:16px}
+.profile-top{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
+.avatar{width:54px;height:54px;border-radius:13px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:1.1rem;font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 4px 14px var(--accent-glow)}
+.profile-name{font-size:1.05rem;font-weight:700;margin-bottom:3px}
+.profile-uid-tag{font-family:'Space Mono',monospace;font-size:.68rem;color:var(--accent-hover);background:var(--accent-glow);padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:6px}
+.badges-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.v-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:.68rem;font-weight:700}
 .v-badge.ev{background:var(--ev-bg);color:var(--ev-color);border:1px solid rgba(52,211,153,.2)}
 .v-badge.fuel{background:var(--fuel-bg);color:var(--fuel-color);border:1px solid rgba(251,146,60,.2)}
 .v-badge.hybrid{background:var(--hybrid-bg);color:var(--hybrid-color);border:1px solid rgba(167,139,250,.2)}
 .v-badge.unknown{background:rgba(255,255,255,.06);color:var(--text-muted);border:1px solid var(--border)}
-.discount-pill{background:rgba(99,102,241,.14);color:var(--accent-hover);border:1px solid rgba(99,102,241,.2);border-radius:6px;padding:3px 8px;font-size:.7rem;font-weight:700}
+.status-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:.68rem;font-weight:700}
+.status-badge.active{background:var(--success-bg);color:var(--success)}
+.status-badge.suspended{background:var(--danger-bg);color:var(--danger)}
 
-/* TABLES */
-.table-wrapper{overflow-x:auto}
+/* ── PROFILE FIELDS ── */
+.profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pf{background:rgba(0,0,0,.18);border-radius:9px;padding:11px 13px}
+[data-theme="light"] .pf{background:rgba(0,0,0,.04)}
+.pf-label{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:4px}
+.pf-value{font-size:.86rem;font-weight:600;color:var(--text-primary)}
+
+/* ── BALANCE BLOCK ── */
+.balance-block{grid-column:span 3;background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.06));border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.balance-label-wrap .bal-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--success)}
+.balance-label-wrap .bal-sub{font-size:.72rem;color:var(--text-secondary);margin-top:2px}
+.balance-amount{font-family:'Space Mono',monospace;font-size:2rem;font-weight:700;color:var(--success)}
+
+/* ── TOLL RATE STRIP ── */
+.toll-strip{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.toll-pill{flex:1;min-width:100px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;text-align:center}
+.toll-pill-emoji{font-size:1.15rem;margin-bottom:4px}
+.toll-pill-type{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:3px}
+.toll-pill-price{font-family:'Space Mono',monospace;font-size:1rem;font-weight:700}
+.toll-pill.mine{border-width:2px}
+.toll-pill.mine.ev{border-color:var(--ev-color);background:var(--ev-bg)}
+.toll-pill.mine.fuel{border-color:var(--fuel-color);background:var(--fuel-bg)}
+.toll-pill.mine.hybrid{border-color:var(--hybrid-color);background:var(--hybrid-bg)}
+
+/* ── RECHARGE AMOUNTS ── */
+.quick-amounts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.qa-btn{padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg-input);color:var(--text-secondary);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s}
+.qa-btn:hover,.qa-btn.sel{background:var(--accent-glow);border-color:var(--accent);color:var(--accent-hover)}
+.recharge-input-row{display:flex;gap:9px;align-items:center}
+.recharge-input-row input{flex:1;padding:11px 13px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:'Space Mono',monospace;font-size:1.05rem;font-weight:700;transition:border-color .2s,box-shadow .2s}
+.recharge-input-row input:focus{outline:none;border-color:var(--success);box-shadow:0 0 0 3px var(--success-bg)}
+.recharge-input-row input::placeholder{font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:400;color:var(--text-muted)}
+
+/* ── EV NOTE ── */
+.ev-note{background:var(--ev-bg);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:10px 13px;font-size:.78rem;color:var(--ev-color);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.suspended-note{background:var(--danger-bg);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:10px 13px;font-size:.8rem;color:var(--danger);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+/* ── HISTORY TABLE ── */
+.search-row{display:flex;gap:9px;margin-bottom:16px;flex-wrap:wrap}
+.search-row .input-icon-wrap{flex:1;min-width:180px}
+.filter-select{padding:9px 11px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:'DM Sans',sans-serif;font-size:.84rem;cursor:pointer;min-width:130px}
+.filter-select:focus{outline:none;border-color:var(--accent)}
+.table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
-thead th{padding:10px 13px;text-align:left;font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap}
-tbody td{padding:12px 13px;font-size:.86rem;border-bottom:1px solid var(--border);color:var(--text-primary)}
-tbody tr:hover{background:var(--bg-card-hover)}
+thead th{padding:10px 13px;text-align:left;font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td{padding:12px 13px;font-size:.85rem;border-bottom:1px solid var(--border);color:var(--text-primary)}
 tbody tr:last-child td{border-bottom:none}
-.mono{font-family:'Space Mono',monospace;font-size:.78rem}
-.status-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:.7rem;font-weight:700}
-.status-badge.success{background:var(--success-bg);color:var(--success)}
-.status-badge.danger{background:var(--danger-bg);color:var(--danger)}
+tbody tr:hover{background:var(--bg-card-hover)}
+.mono{font-family:'Space Mono',monospace;font-size:.75rem}
 
-/* SEARCH */
-.search-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
-.search-input-wrap{position:relative;flex:1;min-width:190px}
-.search-input-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.8rem}
-.search-input-wrap input{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 10px 9px 30px;color:var(--text-primary);font-family:'DM Sans',sans-serif;font-size:.86rem;width:100%}
-.search-input-wrap input:focus{outline:none;border-color:var(--accent)}
+/* ── CHART ── */
+.chart-box{position:relative;height:200px}
 
-/* SECTION HEADER */
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:9px}
-.section-title{font-family:'Space Mono',monospace;font-size:1rem;font-weight:700}
+/* ── STAT MINI ── */
+.mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.mini-stat{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 15px}
+.mini-stat-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px}
+.mini-stat-value{font-family:'Space Mono',monospace;font-size:1.25rem;font-weight:700;color:var(--text-primary)}
+.mini-stat-sub{font-size:.7rem;color:var(--text-secondary);margin-top:3px}
+
+/* ── EMPTY / LOADER ── */
+.loader-row td,.empty-row td{padding:36px;text-align:center;color:var(--text-muted)}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:7px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:40px 16px;color:var(--text-muted)}
+.empty-state i{font-size:1.8rem;margin-bottom:12px;display:block;opacity:.3}
+.empty-state p{font-size:.84rem}
+
+/* ── SECTION TITLE ── */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:8px}
+.section-title{font-family:'Space Mono',monospace;font-size:.98rem;font-weight:700;color:var(--text-primary)}
 .section-sub{font-size:.78rem;color:var(--text-secondary);margin-top:3px}
 
-/* CHART */
-.chart-box{position:relative;height:205px}
+/* ── TOAST ── */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:10px;min-width:270px;box-shadow:0 8px 28px rgba(0,0,0,.45);animation:tin .3s ease;font-size:.84rem}
+@keyframes tin{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}
+.toast.fadeOut{animation:tout .3s ease forwards}
+@keyframes tout{to{opacity:0;transform:translateX(24px)}}
+.ti{font-size:.95rem;flex-shrink:0}
+.toast.success .ti{color:var(--success)}
+.toast.error .ti{color:var(--danger)}
+.toast.info .ti{color:var(--accent-hover)}
+.toast.warn .ti{color:var(--warning)}
+.toast-body .tt{font-weight:700;margin-bottom:2px}
+.toast-body .tm{font-size:.75rem;color:var(--text-secondary)}
 
-/* TOAST */
-.toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
-.toast{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 15px;display:flex;align-items:center;gap:10px;min-width:280px;box-shadow:0 8px 28px rgba(0,0,0,.4);animation:toastIn .3s ease;font-size:.86rem}
-@keyframes toastIn{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:translateX(0)}}
-.toast.fadeOut{animation:toastOut .3s ease forwards}
-@keyframes toastOut{to{opacity:0;transform:translateX(26px)}}
-.toast-icon{font-size:1rem;flex-shrink:0}
-.toast.success .toast-icon{color:var(--success)}
-.toast.error .toast-icon{color:var(--danger)}
-.toast.info .toast-icon{color:var(--accent)}
-.toast.warn .toast-icon{color:var(--warning)}
-.toast-body{flex:1}
-.toast-title{font-weight:700;margin-bottom:2px}
-.toast-msg{font-size:.78rem;color:var(--text-secondary)}
+/* ── MOBILE CARD VIEW ── */
+.m-cards{display:none;flex-direction:column;gap:9px}
+.m-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:13px 14px}
+.m-card-top{display:flex;justify-content:space-between;align-items:flex-start}
+.m-card-divider{border:none;border-top:1px solid var(--border);margin:8px 0}
+.m-card-row{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;margin-top:5px}
+.m-card-lbl{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)}
 
-/* LOADER */
-.loader-row td{padding:34px;text-align:center;color:var(--text-muted)}
-.spinner{display:inline-block;width:17px;height:17px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
-@keyframes spin{to{transform:rotate(360deg)}}
-.empty-state{text-align:center;padding:46px 20px;color:var(--text-muted)}
-.empty-state i{font-size:2rem;margin-bottom:13px;opacity:.32;display:block}
-.empty-state p{font-size:.86rem}
-.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
+/* ── HOW IT WORKS ── */
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:20px}
+.step-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;text-align:center}
+.step-num{width:34px;height:34px;border-radius:50%;background:var(--accent-glow);border:1px solid rgba(124,58,237,.3);display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:.8rem;font-weight:700;color:var(--accent-hover);margin:0 auto 12px}
+.step-icon{font-size:1.3rem;margin-bottom:9px}
+.step-title{font-weight:700;font-size:.88rem;margin-bottom:5px}
+.step-desc{font-size:.76rem;color:var(--text-secondary);line-height:1.55}
 
-/* PRICING PANEL */
-.price-cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:22px}
-.price-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:border-color .2s,transform .2s}
-.price-card:hover{transform:translateY(-2px)}
-.price-card.ev-card{border-top:3px solid var(--ev-color)}
-.price-card.fuel-card{border-top:3px solid var(--fuel-color)}
-.price-card.hybrid-card{border-top:3px solid var(--hybrid-color)}
-.price-card-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.price-card-icon{font-size:1.35rem}
-.price-card-title{font-weight:700;font-size:.9rem}
-.price-card-sub{font-size:.7rem;color:var(--text-muted)}
-.price-display{font-family:'Space Mono',monospace;font-size:1.9rem;font-weight:700;margin-bottom:14px}
-.price-display.ev-price{color:var(--ev-color)}
-.price-display.fuel-price{color:var(--fuel-color)}
-.price-display.hybrid-price{color:var(--hybrid-color)}
-.price-input-row{display:flex;gap:7px;align-items:center}
-.price-input-row .form-input{font-family:'Space Mono',monospace;font-size:.95rem;font-weight:700}
+/* ── PRICING TABLE ── */
+.price-compare{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.pc{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;text-align:center;transition:transform .2s}
+.pc:hover{transform:translateY(-2px)}
+.pc.highlighted{border-color:var(--ev-color);box-shadow:0 0 0 1px var(--ev-color)}
+.pc-emoji{font-size:1.5rem;margin-bottom:9px}
+.pc-title{font-weight:700;font-size:.88rem;margin-bottom:3px}
+.pc-sub{font-size:.7rem;color:var(--text-muted);margin-bottom:13px}
+.pc-price{font-family:'Space Mono',monospace;font-size:1.7rem;font-weight:700;margin-bottom:3px}
+.pc-price.ev{color:var(--ev-color)}
+.pc-price.fuel{color:var(--fuel-color)}
+.pc-price.hybrid{color:var(--hybrid-color)}
+.pc-per{font-size:.7rem;color:var(--text-muted)}
 
-/* EDIT MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(4px);animation:fadeOvl .2s ease}
-@keyframes fadeOvl{from{opacity:0}to{opacity:1}}
-.modal-overlay.hidden{display:none}
-.modal{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:26px;width:100%;max-width:510px;max-height:92vh;overflow-y:auto;animation:modalIn .24s ease;box-shadow:0 20px 55px rgba(0,0,0,.55)}
-@keyframes modalIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-.modal-title{font-family:'Space Mono',monospace;font-size:.95rem;font-weight:700}
-.modal-close{width:28px;height:28px;border:none;background:var(--bg-input);border-radius:6px;color:var(--text-muted);cursor:pointer;font-size:.86rem;display:flex;align-items:center;justify-content:center;transition:all .2s}
-.modal-close:hover{background:var(--danger-bg);color:var(--danger)}
-
-/* MOBILE ELEMENTS */
-.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99;backdrop-filter:blur(2px)}
-.hamburger{display:none;width:36px;height:36px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;align-items:center;justify-content:center;cursor:pointer;font-size:.92rem;color:var(--text-primary);flex-shrink:0}
-.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg-surface);border-top:1px solid var(--border);z-index:90;padding:5px 0 env(safe-area-inset-bottom,5px)}
-.bottom-nav-inner{display:flex;justify-content:space-around}
-.bnav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 6px;cursor:pointer;border-radius:7px;color:var(--text-muted);font-size:.58rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;transition:color .2s;min-width:46px}
-.bnav-item i{font-size:1.08rem}
-.bnav-item.active{color:var(--accent)}
-
-/* MOBILE CARD VIEW */
-.m-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 14px;display:flex;flex-direction:column;gap:7px}
-.m-card-row{display:flex;justify-content:space-between;align-items:center;font-size:.84rem}
-.m-card-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)}
-.m-card-top{display:flex;align-items:center;justify-content:space-between}
-.m-card-name{font-weight:700;font-size:.9rem}
-.m-card-divider{border:none;border-top:1px solid var(--border);margin:2px 0}
-
-/* TABLET */
-@media(max-width:1100px){.stats-grid{grid-template-columns:1fr 1fr}.two-col{grid-template-columns:1fr}.price-cards-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:680px){.price-cards-grid{grid-template-columns:1fr}}
-
-/* MOBILE */
-@media(max-width:768px){
-    body{overflow:hidden}
-    .sidebar{position:fixed;top:0;left:0;bottom:0;z-index:100;transform:translateX(-100%);width:270px !important}
-    .sidebar.open{transform:translateX(0)}
-    .sidebar-overlay.open{display:block}
-    .hamburger{display:flex}
-    .topbar{padding:0 13px;height:52px;gap:8px}
-    .topbar-title{font-size:.78rem}
-    .content{padding:13px 11px 80px;overflow-y:auto;height:calc(100vh - 52px)}
-    .bottom-nav{display:block}
-    .stats-grid{grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px}
-    .stat-card{padding:12px 12px}
-    .stat-value{font-size:1.3rem}
-    .two-col,.form-grid{grid-template-columns:1fr;gap:10px}
-    .form-grid .full{grid-column:span 1}
-    .vtype-grid{grid-template-columns:1fr}
-    .card{padding:15px 13px}
-    .profile-grid{grid-template-columns:1fr 1fr;gap:8px}
-    .balance-display{grid-column:span 2;flex-direction:column;align-items:flex-start;gap:4px}
-    .balance-amount{font-size:1.5rem}
-    .section-header{flex-direction:column;align-items:flex-start}
-    .search-bar{flex-direction:column;align-items:stretch}
-    .search-input-wrap{min-width:unset}
-    .search-bar select.form-input{width:100%}
-    .toast-container{bottom:68px;right:9px;left:9px}
-    .toast{min-width:unset}
-    .mobile-table-wrap table{display:none}
-    .mobile-cards-list{display:flex;flex-direction:column;gap:8px}
-    .price-cards-grid{grid-template-columns:1fr}
-    .btn-group{flex-direction:column}
-    .modal{padding:18px 15px}
-    .price-input-row{flex-direction:column}
-    .price-input-row .btn{width:100%}
+/* ── RESPONSIVE ── */
+@media(max-width:720px){
+  .nav-tabs{padding:0 10px}
+  .nav-tab{padding:11px 12px;font-size:.79rem}
+  .main{padding:16px 14px 72px}
+  .profile-grid{grid-template-columns:1fr 1fr}
+  .balance-block{grid-column:span 2}
+  .mini-stats{grid-template-columns:1fr 1fr}
+  .mini-stats .mini-stat:last-child{grid-column:span 2}
+  .steps-grid{grid-template-columns:1fr}
+  .price-compare{grid-template-columns:1fr}
+  table{display:none}
+  .m-cards{display:flex}
+  .search-row{flex-direction:column}
+  .filter-select{width:100%}
+  .toll-strip{flex-direction:column}
 }
-@media(max-width:400px){.stats-grid{gap:6px}.stat-value{font-size:1.1rem}.content{padding:9px 8px 78px}.bnav-item{min-width:40px;font-size:.53rem}}
+@media(max-width:420px){
+  .header{padding:0 14px;height:54px}
+  .profile-grid{grid-template-columns:1fr}
+  .balance-block{grid-column:span 1}
+  .balance-amount{font-size:1.55rem}
+  .mini-stats .mini-stat:last-child{grid-column:span 1}
+  .mini-stats{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
-<aside class="sidebar" id="mainSidebar">
-    <div class="sidebar-logo">
-        <div class="logo-icon"><i class="fa-solid fa-road-barrier"></i></div>
-        <div class="logo-text">Smart<span>Toll</span><br><small style="font-size:.58rem;color:var(--text-muted);font-family:'DM Sans';font-weight:400;">Admin Console</small></div>
+<!-- HEADER -->
+<header class="header">
+  <a class="header-logo" href="#">
+    <div class="logo-icon"><i class="fa-solid fa-road-barrier"></i></div>
+    <div class="logo-text">Smart<span>Toll</span></div>
+  </a>
+  <div class="header-right">
+    <div class="header-uid" id="headerUid"></div>
+    <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme"><i class="fa-solid fa-circle-half-stroke"></i></button>
+  </div>
+</header>
+
+<!-- NAV TABS -->
+<nav class="nav-tabs">
+  <div class="nav-tab active" data-tab="home" onclick="switchTab('home',this)"><i class="fa-solid fa-house"></i> Home</div>
+  <div class="nav-tab" data-tab="card" onclick="switchTab('card',this)"><i class="fa-solid fa-id-card"></i> My Card</div>
+  <div class="nav-tab" data-tab="recharge" onclick="switchTab('recharge',this)"><i class="fa-solid fa-wallet"></i> Recharge</div>
+  <div class="nav-tab" data-tab="history" onclick="switchTab('history',this);loadHistory()"><i class="fa-solid fa-clock-rotate-left"></i> Trips & History</div>
+  <div class="nav-tab" data-tab="pricing" onclick="switchTab('pricing',this);loadPricingPublic()"><i class="fa-solid fa-tags"></i> Toll Rates</div>
+</nav>
+
+<!-- CONTENT -->
+<main class="main">
+
+  <!-- ══ HOME ══ -->
+  <div id="home" class="tab-pane active">
+    <div class="container">
+
+      <!-- LOOKUP -->
+      <div id="lookupSection">
+        <div class="lookup-wrap">
+          <div class="lookup-hero">
+            <div class="icon-ring"><i class="fa-solid fa-nfc-directional"></i></div>
+            <h1>Welcome to SmartToll</h1>
+            <p>Enter your FASTag Card UID to view your account, balance, and recharge your card.</p>
+          </div>
+          <div class="card">
+            <div class="form-group" style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px;">
+              <label style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);">Your Card UID</label>
+              <div class="input-icon-wrap">
+                <i class="fa-solid fa-credit-card"></i>
+                <input type="text" id="lookupUid" placeholder="e.g. A1B2C3D4" onkeydown="if(event.key==='Enter')lookupCard()">
+              </div>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="lookupCard()"><i class="fa-solid fa-magnifying-glass"></i> Find My Card</button>
+          </div>
+          <div style="margin-top:24px;" id="howItWorks">
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);text-align:center;margin-bottom:14px;">How it works</div>
+            <div class="steps-grid">
+              <div class="step-card">
+                <div class="step-num">01</div>
+                <div class="step-icon">🔍</div>
+                <div class="step-title">Enter UID</div>
+                <div class="step-desc">Type your FASTag Card UID to look up your account instantly.</div>
+              </div>
+              <div class="step-card">
+                <div class="step-num">02</div>
+                <div class="step-icon">💳</div>
+                <div class="step-title">View Balance</div>
+                <div class="step-desc">See your current balance, vehicle type, and toll rate in one place.</div>
+              </div>
+              <div class="step-card">
+                <div class="step-num">03</div>
+                <div class="step-icon">⚡</div>
+                <div class="step-title">Recharge Instantly</div>
+                <div class="step-desc">Pay securely via Razorpay and your balance updates in real-time.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DASHBOARD (shown after card lookup) -->
+      <div id="dashSection" style="display:none;">
+        <div class="section-head">
+          <div>
+            <div class="section-title">My Dashboard</div>
+            <div class="section-sub">Live account overview</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-outline btn-sm" onclick="refreshCard()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+            <button class="btn btn-outline btn-sm" onclick="clearCard()"><i class="fa-solid fa-right-from-bracket"></i> Switch Card</button>
+          </div>
+        </div>
+
+        <!-- PROFILE HERO -->
+        <div class="profile-hero">
+          <div class="profile-top">
+            <div class="avatar" id="dashAvatar">—</div>
+            <div>
+              <div class="profile-name" id="dashName">—</div>
+              <div class="profile-uid-tag" id="dashUid">—</div>
+              <div class="badges-row" style="margin-top:6px;">
+                <span id="dashVBadge"></span>
+                <span id="dashStatusBadge"></span>
+              </div>
+            </div>
+          </div>
+          <div class="profile-grid">
+            <div class="pf"><div class="pf-label">Vehicle ID</div><div class="pf-value" id="dashVehicle">—</div></div>
+            <div class="pf"><div class="pf-label">Mobile</div><div class="pf-value" id="dashMobile">—</div></div>
+            <div class="pf"><div class="pf-label">Member Since</div><div class="pf-value" id="dashDate">—</div></div>
+            <div class="balance-block">
+              <div class="balance-label-wrap">
+                <div class="bal-label">Available Balance</div>
+                <div class="bal-sub">Updates instantly after recharge</div>
+              </div>
+              <div class="balance-amount">₹<span id="dashBalance">0</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MINI STATS -->
+        <div class="mini-stats">
+          <div class="mini-stat">
+            <div class="mini-stat-label">My Toll Rate</div>
+            <div class="mini-stat-value">₹<span id="dashMyRate">—</span></div>
+            <div class="mini-stat-sub">per crossing</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-stat-label">Estimated Trips</div>
+            <div class="mini-stat-value" id="dashTrips">—</div>
+            <div class="mini-stat-sub">at current balance</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-stat-label">Vehicle Type</div>
+            <div class="mini-stat-value" id="dashVType" style="font-size:.95rem;padding-top:4px;">—</div>
+            <div class="mini-stat-sub" id="dashVTypeSub"></div>
+          </div>
+        </div>
+
+        <!-- QUICK RECHARGE CTA -->
+        <div id="suspendedBanner" class="suspended-note" style="display:none;"><i class="fa-solid fa-ban"></i> <strong>Card Suspended.</strong> Contact toll authority to reactivate your card.</div>
+        <div class="card" id="quickRechargeCard">
+          <div class="card-title">Quick Recharge</div>
+          <div class="quick-amounts">
+            <button class="qa-btn" onclick="setQuickAmt(100,this)">₹100</button>
+            <button class="qa-btn" onclick="setQuickAmt(200,this)">₹200</button>
+            <button class="qa-btn" onclick="setQuickAmt(500,this)">₹500</button>
+            <button class="qa-btn" onclick="setQuickAmt(1000,this)">₹1000</button>
+          </div>
+          <div class="recharge-input-row">
+            <input type="number" id="dashRechargeAmt" placeholder="Or enter custom amount…" oninput="clearQASel()">
+            <button class="btn btn-success" onclick="initiatePayment('dash')" id="dashPayBtn"><i class="fa-solid fa-shield-halved"></i> Pay Now</button>
+          </div>
+        </div>
+
+        <!-- RECENT TRIPS -->
+        <div class="card" style="margin-top:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div class="card-title" style="margin-bottom:0;">Recent Transactions</div>
+            <a onclick="switchTab('history',document.querySelector('[data-tab=history]'));loadHistory()" style="font-size:.74rem;color:var(--accent-hover);cursor:pointer;font-weight:600;">View all →</a>
+          </div>
+          <div class="table-wrap">
+            <table><thead><tr><th>Date</th><th>Amount</th><th>Payment ID</th><th>Status</th></tr></thead>
+            <tbody id="recentHistoryBody"><tr class="loader-row"><td colspan="4"><span class="spinner"></span>Loading…</td></tr></tbody></table>
+          </div>
+          <div class="m-cards" id="recentHistoryMobile"></div>
+        </div>
+      </div>
+
     </div>
-    <div class="sidebar-label">Main</div>
-    <div class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard',this)"><i class="nav-icon fa-solid fa-gauge-high"></i> Overview</div>
-    <div class="nav-item" data-tab="pricing" onclick="switchTab('pricing',this)"><i class="nav-icon fa-solid fa-tags"></i> Toll Pricing</div>
-    <div class="sidebar-label">Cards</div>
-    <div class="nav-item" data-tab="recharge" onclick="switchTab('recharge',this)"><i class="nav-icon fa-solid fa-wallet"></i> Recharge Card</div>
-    <div class="nav-item" data-tab="register" onclick="switchTab('register',this)"><i class="nav-icon fa-solid fa-id-card-clip"></i> Register Card</div>
-    <div class="nav-item" data-tab="allcards" onclick="switchTab('allcards',this);loadAllCards();"><i class="nav-icon fa-solid fa-layer-group"></i> All Cards</div>
-    <div class="sidebar-label">Logs</div>
-    <div class="nav-item" data-tab="history" onclick="switchTab('history',this);loadHistory();"><i class="nav-icon fa-solid fa-clock-rotate-left"></i> Transactions</div>
-    <div class="sidebar-footer">
-        <span style="font-size:.7rem;color:var(--text-muted);">v2.1</span>
-        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme"><i class="fa-solid fa-circle-half-stroke"></i></button>
+  </div>
+
+  <!-- ══ MY CARD ══ -->
+  <div id="card" class="tab-pane">
+    <div class="container">
+      <div id="cardNoData" class="card" style="max-width:440px;margin:0 auto;">
+        <div class="empty-state">
+          <i class="fa-solid fa-id-card"></i>
+          <p>No card loaded. Go to <strong>Home</strong> and enter your Card UID first.</p>
+          <button class="btn btn-primary" style="margin-top:16px;" onclick="switchTab('home',document.querySelector('[data-tab=home]'))"><i class="fa-solid fa-house"></i> Go to Home</button>
+        </div>
+      </div>
+      <div id="cardDetails" style="display:none;">
+        <div class="section-head">
+          <div><div class="section-title">My Card Details</div><div class="section-sub">Read-only view of your registered card</div></div>
+          <button class="btn btn-outline btn-sm" onclick="refreshCard()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+        </div>
+        <div class="profile-hero">
+          <div class="profile-top">
+            <div class="avatar" id="cardAvatar">—</div>
+            <div>
+              <div class="profile-name" id="cardName">—</div>
+              <div class="profile-uid-tag" id="cardUidTag">—</div>
+              <div class="badges-row" style="margin-top:6px;">
+                <span id="cardVBadge"></span>
+                <span id="cardStatusBadge2"></span>
+              </div>
+            </div>
+          </div>
+          <div class="profile-grid">
+            <div class="pf"><div class="pf-label">Vehicle ID</div><div class="pf-value" id="cardVehicle">—</div></div>
+            <div class="pf"><div class="pf-label">Mobile</div><div class="pf-value" id="cardMobile">—</div></div>
+            <div class="pf"><div class="pf-label">Email</div><div class="pf-value" id="cardEmail" style="font-size:.8rem;">—</div></div>
+            <div class="pf"><div class="pf-label">Registered</div><div class="pf-value" id="cardDate">—</div></div>
+            <div class="pf"><div class="pf-label">Card Status</div><div class="pf-value" id="cardStatus">—</div></div>
+            <div class="pf"><div class="pf-label">Vehicle Type</div><div class="pf-value" id="cardVTypeLabel">—</div></div>
+            <div class="balance-block">
+              <div class="balance-label-wrap">
+                <div class="bal-label">Current Balance</div>
+                <div class="bal-sub">Live from database</div>
+              </div>
+              <div class="balance-amount">₹<span id="cardBalance">0</span></div>
+            </div>
+          </div>
+        </div>
+        <!-- Toll rate for this card -->
+        <div class="card">
+          <div class="card-title">Your Toll Rate</div>
+          <div id="myTollStrip" class="toll-strip"></div>
+          <div style="font-size:.77rem;color:var(--text-secondary);padding:8px 12px;background:var(--bg-input);border-radius:7px;">
+            <i class="fa-solid fa-circle-info" style="color:var(--accent-hover);margin-right:6px;"></i>
+            Rate is determined by your vehicle type and may be updated by the toll authority.
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:9px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="switchTab('recharge',document.querySelector('[data-tab=recharge]'))"><i class="fa-solid fa-wallet"></i> Recharge Card</button>
+          <button class="btn btn-outline" onclick="clearCard()"><i class="fa-solid fa-right-from-bracket"></i> Switch Card</button>
+        </div>
+      </div>
     </div>
-</aside>
+  </div>
 
-<!-- MAIN -->
-<div class="main">
-    <div class="topbar">
-        <div class="hamburger" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></div>
-        <div class="topbar-title">Smart Toll <span class="bc-sep">/ </span><span id="topbarSection">Overview</span></div>
-        <div class="topbar-right"><div class="status-dot"></div><span class="live-text">LIVE</span></div>
+  <!-- ══ RECHARGE ══ -->
+  <div id="recharge" class="tab-pane">
+    <div class="container" style="max-width:520px;">
+      <div class="section-head">
+        <div><div class="section-title">Recharge Card</div><div class="section-sub">Top up your FASTag balance securely</div></div>
+      </div>
+
+      <!-- No card loaded -->
+      <div id="rechNoData" class="card">
+        <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px;">
+          <label style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);">Card UID</label>
+          <div class="input-icon-wrap">
+            <i class="fa-solid fa-credit-card"></i>
+            <input type="text" id="rechUid" placeholder="Scan or type Card UID…" onkeydown="if(event.key==='Enter')lookupCard()">
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="lookupCardFromRecharge()"><i class="fa-solid fa-magnifying-glass"></i> Fetch Card</button>
+      </div>
+
+      <!-- Card loaded -->
+      <div id="rechDetails" style="display:none;">
+        <div class="profile-hero" style="margin-bottom:14px;">
+          <div class="profile-top" style="margin-bottom:12px;">
+            <div class="avatar" id="rechAvatar">—</div>
+            <div>
+              <div class="profile-name" id="rechName">—</div>
+              <div class="profile-uid-tag" id="rechUidTag">—</div>
+              <div class="badges-row" style="margin-top:5px;"><span id="rechVBadge"></span></div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);border-radius:9px;padding:11px 14px;">
+            <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--success);">Balance</div>
+            <div style="font-family:'Space Mono',monospace;font-size:1.5rem;font-weight:700;color:var(--success);">₹<span id="rechBalance">0</span></div>
+          </div>
+        </div>
+
+        <div id="rechSuspendedNote" class="suspended-note" style="display:none;"><i class="fa-solid fa-ban"></i> Card is suspended. Recharge is disabled.</div>
+        <div id="rechEvNote" class="ev-note" style="display:none;"><i class="fa-solid fa-bolt"></i> <span>EV discount active — toll rate ₹<span id="rechEvRate">—</span> per crossing.</span></div>
+
+        <div class="card" id="rechFormCard">
+          <div class="card-title">Select Amount</div>
+          <div class="quick-amounts">
+            <button class="qa-btn" onclick="setRechAmt(100,this)">₹100</button>
+            <button class="qa-btn" onclick="setRechAmt(200,this)">₹200</button>
+            <button class="qa-btn" onclick="setRechAmt(500,this)">₹500</button>
+            <button class="qa-btn" onclick="setRechAmt(1000,this)">₹1000</button>
+            <button class="qa-btn" onclick="setRechAmt(2000,this)">₹2000</button>
+          </div>
+          <div class="recharge-input-row" style="margin-bottom:12px;">
+            <input type="number" id="rechAmount" placeholder="Or enter amount…" oninput="clearRechSel()">
+          </div>
+          <button class="btn btn-success btn-full" onclick="initiatePayment('rech')" id="rechPayBtn"><i class="fa-solid fa-shield-halved"></i> Pay Securely via Razorpay</button>
+        </div>
+
+        <div style="margin-top:10px;text-align:center;font-size:.72rem;color:var(--text-muted);">
+          <i class="fa-solid fa-lock" style="margin-right:4px;"></i> Payments are 100% secured by Razorpay.
+          <a onclick="clearCard()" style="color:var(--accent-hover);cursor:pointer;margin-left:10px;font-weight:600;">Switch card →</a>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <div class="content">
+  <!-- ══ HISTORY ══ -->
+  <div id="history" class="tab-pane">
+    <div class="container">
+      <div class="section-head">
+        <div><div class="section-title">Trips &amp; History</div><div class="section-sub" id="histSubHead">Your recharge transaction log</div></div>
+        <button class="btn btn-outline btn-sm" onclick="loadHistory()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+      </div>
 
-        <!-- ══ DASHBOARD ══ -->
-        <div id="dashboard" class="tab-pane active">
-            <div class="section-header">
-                <div><div class="section-title">Overview Dashboard</div><div class="section-sub">Real-time system metrics</div></div>
-                <button class="btn btn-outline" onclick="refreshDashboard()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-card"><i class="stat-icon fa-solid fa-users"></i><div class="stat-label">Total Cards</div><div class="stat-value" id="statCards">—</div><div class="stat-delta">All registered</div></div>
-                <div class="stat-card"><i class="stat-icon fa-solid fa-indian-rupee-sign"></i><div class="stat-label">Total Balance</div><div class="stat-value" id="statTotal">—</div><div class="stat-delta" id="statTotalSub">Fetching…</div></div>
-                <div class="stat-card"><i class="stat-icon fa-solid fa-bolt"></i><div class="stat-label">EV Vehicles</div><div class="stat-value" id="statEV">—</div><div class="stat-delta">Discounted toll</div></div>
-                <div class="stat-card"><i class="stat-icon fa-solid fa-fire"></i><div class="stat-label">Fuel + Hybrid</div><div class="stat-value" id="statFuelHybrid">—</div><div class="stat-delta">Standard rates</div></div>
-            </div>
+      <div id="histNoCard" class="card" style="max-width:440px;margin:0 auto;">
+        <div class="empty-state">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <p>Load a card first to view its transaction history.</p>
+          <button class="btn btn-primary" style="margin-top:16px;" onclick="switchTab('home',document.querySelector('[data-tab=home]'))"><i class="fa-solid fa-house"></i> Go to Home</button>
+        </div>
+      </div>
 
-            <div class="two-col">
-                <div class="card">
-                    <div class="card-header"><div class="card-title">Recharge Volume</div><span style="font-size:.7rem;color:var(--text-muted);">Last 7 days (demo)</span></div>
-                    <div class="chart-box"><canvas id="rechargeChart"></canvas></div>
-                </div>
-                <div class="card">
-                    <div class="card-header"><div class="card-title">Fleet Breakdown</div></div>
-                    <div class="chart-box"><canvas id="fleetChart"></canvas></div>
-                </div>
-            </div>
-
-            <!-- Live price summary -->
-            <div class="card" style="margin-bottom:16px;">
-                <div class="card-header">
-                    <div class="card-title">Current Toll Prices</div>
-                    <a onclick="switchTab('pricing',document.querySelector('[data-tab=pricing]'))" style="font-size:.76rem;color:var(--accent);cursor:pointer;font-weight:600;">Edit prices →</a>
-                </div>
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:11px;">
-                    <div style="background:var(--ev-bg);border:1px solid rgba(52,211,153,.2);border-radius:10px;padding:15px;text-align:center;">
-                        <div style="font-size:1.2rem;margin-bottom:5px;">⚡</div>
-                        <div class="stat-label">EV</div>
-                        <div style="font-family:'Space Mono',monospace;font-size:1.35rem;font-weight:700;color:var(--ev-color);">₹<span id="dashEvPrice">—</span></div>
-                        <div style="font-size:.67rem;color:var(--text-muted);margin-top:2px;">per crossing</div>
-                    </div>
-                    <div style="background:var(--fuel-bg);border:1px solid rgba(251,146,60,.2);border-radius:10px;padding:15px;text-align:center;">
-                        <div style="font-size:1.2rem;margin-bottom:5px;">⛽</div>
-                        <div class="stat-label">Fuel</div>
-                        <div style="font-family:'Space Mono',monospace;font-size:1.35rem;font-weight:700;color:var(--fuel-color);">₹<span id="dashFuelPrice">—</span></div>
-                        <div style="font-size:.67rem;color:var(--text-muted);margin-top:2px;">per crossing</div>
-                    </div>
-                    <div style="background:var(--hybrid-bg);border:1px solid rgba(167,139,250,.2);border-radius:10px;padding:15px;text-align:center;">
-                        <div style="font-size:1.2rem;margin-bottom:5px;">🔋</div>
-                        <div class="stat-label">Hybrid</div>
-                        <div style="font-family:'Space Mono',monospace;font-size:1.35rem;font-weight:700;color:var(--hybrid-color);">₹<span id="dashHybridPrice">—</span></div>
-                        <div style="font-size:.67rem;color:var(--text-muted);margin-top:2px;">per crossing</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">Recent Registrations</div>
-                    <a onclick="switchTab('allcards',document.querySelector('[data-tab=allcards]'));loadAllCards();" style="font-size:.76rem;color:var(--accent);cursor:pointer;font-weight:600;">View all →</a>
-                </div>
-                <div class="mobile-table-wrap">
-                    <div class="table-wrapper">
-                        <table><thead><tr><th>Name</th><th>Card UID</th><th>Vehicle</th><th>Type</th><th>Balance</th><th>Status</th></tr></thead>
-                        <tbody id="recentCardsBody"><tr class="loader-row"><td colspan="6"><span class="spinner"></span>Loading…</td></tr></tbody></table>
-                    </div>
-                    <div class="mobile-cards-list" id="recentMobileList"></div>
-                </div>
-            </div>
+      <div id="histContent" style="display:none;">
+        <!-- stats row -->
+        <div class="mini-stats" id="histStats" style="margin-bottom:16px;">
+          <div class="mini-stat"><div class="mini-stat-label">Total Recharged</div><div class="mini-stat-value">₹<span id="histTotal">0</span></div><div class="mini-stat-sub">all time</div></div>
+          <div class="mini-stat"><div class="mini-stat-label">Transactions</div><div class="mini-stat-value" id="histCount">0</div><div class="mini-stat-sub">recharges</div></div>
+          <div class="mini-stat"><div class="mini-stat-label">Last Recharge</div><div class="mini-stat-value" id="histLast" style="font-size:.85rem;">—</div><div class="mini-stat-sub" id="histLastAmt"></div></div>
         </div>
 
-        <!-- ══ TOLL PRICING ══ -->
-        <div id="pricing" class="tab-pane">
-            <div class="section-header">
-                <div><div class="section-title">Toll Pricing Manager</div><div class="section-sub">Update prices instantly — synced to Firebase at <code style="font-size:.75rem;color:var(--accent);">prices/</code> root</div></div>
-                <button class="btn btn-outline" onclick="loadPricing()"><i class="fa-solid fa-rotate-right"></i> Reload</button>
-            </div>
-
-            <div class="price-cards-grid">
-                <div class="price-card ev-card">
-                    <div class="price-card-header"><div class="price-card-icon">⚡</div><div><div class="price-card-title">Electric Vehicle (EV)</div><div class="price-card-sub">Eco-friendly discounted rate</div></div></div>
-                    <div class="price-display ev-price">₹<span id="currentEvPrice">—</span></div>
-                    <div class="form-group">
-                        <label class="form-label">New EV Price (₹ per crossing)</label>
-                        <div class="price-input-row">
-                            <input class="form-input" type="number" id="inputEvPrice" placeholder="e.g. 30" min="0">
-                            <button class="btn btn-success" onclick="updatePrice('ev')"><i class="fa-solid fa-floppy-disk"></i> Save</button>
-                        </div>
-                    </div>
-                    <div style="margin-top:11px;padding:8px 11px;background:var(--ev-bg);border-radius:7px;font-size:.76rem;color:var(--ev-color);"><i class="fa-solid fa-circle-info"></i> EV vehicles get the lowest toll rate to encourage eco-friendly travel.</div>
-                </div>
-
-                <div class="price-card fuel-card">
-                    <div class="price-card-header"><div class="price-card-icon">⛽</div><div><div class="price-card-title">Fuel / Combustion (ICE)</div><div class="price-card-sub">Standard petrol/diesel rate</div></div></div>
-                    <div class="price-display fuel-price">₹<span id="currentFuelPrice">—</span></div>
-                    <div class="form-group">
-                        <label class="form-label">New Fuel Price (₹ per crossing)</label>
-                        <div class="price-input-row">
-                            <input class="form-input" type="number" id="inputFuelPrice" placeholder="e.g. 60" min="0">
-                            <button class="btn btn-warning" onclick="updatePrice('fuel')"><i class="fa-solid fa-floppy-disk"></i> Save</button>
-                        </div>
-                    </div>
-                    <div style="margin-top:11px;padding:8px 11px;background:var(--fuel-bg);border-radius:7px;font-size:.76rem;color:var(--fuel-color);"><i class="fa-solid fa-circle-info"></i> Standard rate applied to all petrol and diesel vehicles.</div>
-                </div>
-
-                <div class="price-card hybrid-card">
-                    <div class="price-card-header"><div class="price-card-icon">🔋</div><div><div class="price-card-title">Hybrid Vehicle</div><div class="price-card-sub">Mid-range concession rate</div></div></div>
-                    <div class="price-display hybrid-price">₹<span id="currentHybridPrice">—</span></div>
-                    <div class="form-group">
-                        <label class="form-label">New Hybrid Price (₹ per crossing)</label>
-                        <div class="price-input-row">
-                            <input class="form-input" type="number" id="inputHybridPrice" placeholder="e.g. 45" min="0">
-                            <button class="btn btn-primary" onclick="updatePrice('hybrid')"><i class="fa-solid fa-floppy-disk"></i> Save</button>
-                        </div>
-                    </div>
-                    <div style="margin-top:11px;padding:8px 11px;background:var(--hybrid-bg);border-radius:7px;font-size:.76rem;color:var(--hybrid-color);"><i class="fa-solid fa-circle-info"></i> Concession rate between EV and full combustion vehicles.</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">Price Update Log <span style="font-size:.7rem;font-weight:400;color:var(--text-muted);">(this session)</span></div>
-                    <button class="btn btn-outline btn-sm" onclick="clearPriceLog()"><i class="fa-solid fa-trash"></i> Clear</button>
-                </div>
-                <div id="priceLogList" style="display:flex;flex-direction:column;gap:7px;max-height:260px;overflow-y:auto;">
-                    <div class="empty-state" style="padding:26px 0;"><i class="fa-regular fa-clock"></i><p>No changes made yet this session.</p></div>
-                </div>
-            </div>
+        <!-- chart -->
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-title">Recharge Trend</div>
+          <div class="chart-box"><canvas id="histChart"></canvas></div>
         </div>
 
-        <!-- ══ RECHARGE ══ -->
-        <div id="recharge" class="tab-pane">
-            <div class="section-header"><div><div class="section-title">Recharge Card</div><div class="section-sub">Fetch card details and top up balance securely</div></div></div>
-            <div style="max-width:545px;">
-                <div class="card">
-                    <div class="form-group">
-                        <label class="form-label">Card UID</label>
-                        <input class="form-input" type="text" id="rechUid" placeholder="Scan or enter Card UID…">
-                    </div>
-                    <div class="btn-group" style="margin-top:0;">
-                        <button class="btn btn-primary btn-full" onclick="checkBalance()"><i class="fa-solid fa-magnifying-glass"></i> Fetch Card Details</button>
-                    </div>
-
-                    <div id="userDetailsCard" style="display:none;">
-                        <hr class="divider">
-                        <div class="profile-card">
-                            <div class="profile-header">
-                                <div class="profile-avatar" id="profileAvatar">—</div>
-                                <div>
-                                    <div class="profile-name" id="dispName">—</div>
-                                    <div class="profile-uid" id="dispUidTag">—</div>
-                                    <div style="margin-top:5px;display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
-                                        <span id="vTypeBadgeWrap"></span>
-                                        <span class="discount-pill" id="discountBadge" style="display:none;"></span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="profile-grid">
-                                <div class="profile-field"><div class="profile-field-label">Vehicle ID</div><div class="profile-field-value" id="dispVehicle">—</div></div>
-                                <div class="profile-field"><div class="profile-field-label">Mobile</div><div class="profile-field-value" id="dispMobile">—</div></div>
-                                <div class="profile-field"><div class="profile-field-label">Registered</div><div class="profile-field-value" id="dispDate">—</div></div>
-                                <div class="balance-display">
-                                    <div><div class="balance-label">Available Balance</div><div style="font-size:.7rem;color:var(--text-secondary);margin-top:2px;">Updates instantly after recharge</div></div>
-                                    <div class="balance-amount">₹<span id="dispBalance">0</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div style="margin-top:16px;">
-                            <div id="evDiscountNote" style="display:none;background:var(--ev-bg);border:1px solid rgba(52,211,153,.2);border-radius:7px;padding:9px 12px;font-size:.78rem;color:var(--ev-color);margin-bottom:12px;">
-                                <i class="fa-solid fa-bolt"></i> <strong>EV Benefit:</strong> Toll rate ₹<span id="evTollPrice">—</span> per crossing.
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Recharge Amount (₹)</label>
-                                <input class="form-input" type="number" id="rechargeAmount" placeholder="e.g. 500">
-                            </div>
-                            <div class="btn-group">
-                                <button class="btn btn-success btn-full" onclick="initiatePayment()"><i class="fa-solid fa-shield-halved"></i> Pay with Razorpay</button>
-                                <button class="btn btn-outline" onclick="openEditModal(currentUid, currentUserData)"><i class="fa-solid fa-pen-to-square"></i> Edit Card</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="card">
+          <div class="search-row">
+            <div class="input-icon-wrap"><i class="fa-solid fa-search"></i><input type="text" id="histSearch" placeholder="Search by amount or payment ID…" oninput="filterHistoryUser()"></div>
+            <select class="filter-select" id="histFilter" onchange="filterHistoryUser()">
+              <option value="">All amounts</option>
+              <option value="low">Under ₹200</option>
+              <option value="mid">₹200–₹500</option>
+              <option value="high">Over ₹500</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table><thead><tr><th>Date &amp; Time</th><th>Amount</th><th>Payment ID</th><th>Status</th></tr></thead>
+            <tbody id="histTableBody"><tr class="loader-row"><td colspan="4"><span class="spinner"></span>Loading…</td></tr></tbody></table>
+          </div>
+          <div class="m-cards" id="histMobile"></div>
+          <div id="histCountLabel" style="margin-top:12px;font-size:.74rem;color:var(--text-muted);"></div>
         </div>
-
-        <!-- ══ REGISTER ══ -->
-        <div id="register" class="tab-pane">
-            <div class="section-header"><div><div class="section-title">Register New Card</div><div class="section-sub">Link a FASTag UID to a user profile</div></div></div>
-            <div style="max-width:620px;">
-                <div class="card">
-                    <div class="form-grid">
-                        <div class="form-group"><label class="form-label">Card UID *</label><input class="form-input" type="text" id="regUid" placeholder="e.g. A1B2C3D4"></div>
-                        <div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" type="text" id="regName" placeholder="Enter full name"></div>
-                        <div class="form-group"><label class="form-label">Mobile Number *</label><input class="form-input" type="tel" id="regMobile" placeholder="10-digit number" maxlength="10"></div>
-                        <div class="form-group"><label class="form-label">Vehicle ID *</label><input class="form-input" type="text" id="regVehicle" placeholder="e.g. KA05AB1234"></div>
-                        <div class="form-group full"><label class="form-label">Email Address</label><input class="form-input" type="email" id="regEmail" placeholder="name@example.com"></div>
-                        <div class="form-group full">
-                            <label class="form-label">Vehicle Type *</label>
-                            <div class="vtype-grid">
-                                <div class="vtype-option" id="reg-vt-ev" onclick="regSelectVType('EV')"><div class="vtype-check"><i class="fa-solid fa-check"></i></div><div class="vtype-emoji">⚡</div><div class="vtype-lbl">Electric (EV)</div><div class="vtype-sub">Lowest toll<br>Eco-friendly</div></div>
-                                <div class="vtype-option" id="reg-vt-fuel" onclick="regSelectVType('fuel')"><div class="vtype-check"><i class="fa-solid fa-check"></i></div><div class="vtype-emoji">⛽</div><div class="vtype-lbl">Fuel / ICE</div><div class="vtype-sub">Standard rate<br>Petrol/Diesel</div></div>
-                                <div class="vtype-option" id="reg-vt-hybrid" onclick="regSelectVType('hybrid')"><div class="vtype-check"><i class="fa-solid fa-check"></i></div><div class="vtype-emoji">🔋</div><div class="vtype-lbl">Hybrid</div><div class="vtype-sub">Mid-range rate<br>Part electric</div></div>
-                            </div>
-                        </div>
-                        <div class="form-group"><label class="form-label">Initial Balance (₹)</label><input class="form-input" type="number" id="regBalance" value="0" placeholder="0"></div>
-                        <div class="form-group"><label class="form-label">Card Status</label><select class="form-input" id="regStatus"><option value="active">Active</option><option value="suspended">Suspended</option></select></div>
-                        <div class="full"><button class="btn btn-primary btn-full" onclick="registerCard()"><i class="fa-solid fa-user-plus"></i> Register &amp; Activate Card</button></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ══ HISTORY ══ -->
-        <div id="history" class="tab-pane">
-            <div class="section-header">
-                <div><div class="section-title">Transaction History</div><div class="section-sub">All recharge logs from Google Sheets</div></div>
-                <button class="btn btn-outline" onclick="loadHistory()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
-            </div>
-            <div class="card" style="max-width:1080px;">
-                <div class="search-bar">
-                    <div class="search-input-wrap"><i class="fa-solid fa-search"></i><input type="text" id="historySearch" placeholder="Search UID, vehicle, payment ID…" oninput="filterHistory()"></div>
-                    <select class="form-input" id="historyFilter" onchange="filterHistory()" style="width:145px;"><option value="">All amounts</option><option value="low">Under ₹200</option><option value="mid">₹200–₹500</option><option value="high">Over ₹500</option></select>
-                </div>
-                <div class="mobile-table-wrap">
-                    <div class="table-wrapper">
-                        <table><thead><tr><th>Date &amp; Time</th><th>Card UID</th><th>Vehicle</th><th>Amount</th><th>Payment ID</th><th>Status</th></tr></thead>
-                        <tbody id="historyTableBody"><tr class="loader-row"><td colspan="6"><span class="spinner"></span>Loading…</td></tr></tbody></table>
-                    </div>
-                    <div class="mobile-cards-list" id="historyMobileList"></div>
-                </div>
-                <div id="historyCount" style="margin-top:12px;font-size:.76rem;color:var(--text-muted);"></div>
-            </div>
-        </div>
-
-        <!-- ══ ALL CARDS ══ -->
-        <div id="allcards" class="tab-pane">
-            <div class="section-header">
-                <div><div class="section-title">All Registered Cards</div><div class="section-sub">Manage, edit vehicle type, and control card status</div></div>
-                <button class="btn btn-outline" onclick="loadAllCards()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
-            </div>
-            <div class="search-bar">
-                <div class="search-input-wrap"><i class="fa-solid fa-search"></i><input type="text" id="cardSearch" placeholder="Search name, UID, vehicle…" oninput="filterCards()"></div>
-                <select class="form-input" id="cardTypeFilter" onchange="filterCards()" style="width:148px;"><option value="">All types</option><option value="EV">EV only</option><option value="fuel">Fuel only</option><option value="hybrid">Hybrid only</option><option value="unknown">No type set</option></select>
-                <select class="form-input" id="cardStatusFilter" onchange="filterCards()" style="width:148px;"><option value="">All status</option><option value="active">Active</option><option value="suspended">Suspended</option></select>
-            </div>
-            <div class="card" style="max-width:1080px;">
-                <div class="mobile-table-wrap">
-                    <div class="table-wrapper">
-                        <table><thead><tr><th>Name</th><th>Card UID</th><th>Vehicle ID</th><th>Type</th><th>Balance</th><th>Registered</th><th>Status</th><th>Actions</th></tr></thead>
-                        <tbody id="allCardsBody"><tr class="loader-row"><td colspan="8"><span class="spinner"></span>Fetching…</td></tr></tbody></table>
-                    </div>
-                    <div class="mobile-cards-list" id="allCardsMobileList"></div>
-                </div>
-            </div>
-        </div>
-
-    </div><!-- /content -->
-</div><!-- /main -->
-
-<!-- EDIT CARD MODAL -->
-<div class="modal-overlay hidden" id="editModal">
-    <div class="modal">
-        <div class="modal-header">
-            <div class="modal-title"><i class="fa-solid fa-pen-to-square" style="color:var(--accent);margin-right:7px;"></i>Edit Card</div>
-            <button class="modal-close" onclick="closeEditModal()"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div style="background:var(--bg-input);border-radius:7px;padding:9px 12px;margin-bottom:16px;display:flex;align-items:center;gap:9px;">
-            <i class="fa-solid fa-id-card" style="color:var(--accent);font-size:.95rem;"></i>
-            <div><div style="font-size:.66rem;color:var(--text-muted);text-transform:uppercase;font-weight:700;letter-spacing:.06em;">Editing Card UID</div><div class="mono" id="editModalUid" style="font-size:.86rem;color:var(--text-primary);margin-top:2px;">—</div></div>
-        </div>
-        <div class="form-grid">
-            <div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" type="text" id="editName"></div>
-            <div class="form-group"><label class="form-label">Mobile Number *</label><input class="form-input" type="tel" id="editMobile" maxlength="10"></div>
-            <div class="form-group"><label class="form-label">Vehicle ID *</label><input class="form-input" type="text" id="editVehicle"></div>
-            <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="editEmail"></div>
-            <div class="form-group"><label class="form-label">Balance (₹)</label><input class="form-input" type="number" id="editBalance"></div>
-            <div class="form-group"><label class="form-label">Card Status</label><select class="form-input" id="editStatus"><option value="active">Active</option><option value="suspended">Suspended</option></select></div>
-            <div class="form-group full">
-                <label class="form-label">Vehicle Type *</label>
-                <div class="vtype-grid">
-                    <div class="vtype-option" id="edit-vt-ev" onclick="editSelectVType('EV')"><div class="vtype-check"><i class="fa-solid fa-check"></i></div><div class="vtype-emoji">⚡</div><div class="vtype-lbl">Electric (EV)</div><div class="vtype-sub">Lowest rate</div></div>
-                    <div class="vtype-option" id="edit-vt-fuel" onclick="editSelectVType('fuel')"><div class="vtype-check"><i class="fa-solid fa-check"></i></div><div class="vtype-emoji">⛽</div><div class="vtype-lbl">Fuel / ICE</div><div class="vtype-sub">Standard rate</div></div>
-                    <div class="vtype-option" id="edit-vt-hybrid" onclick="editSelectVType('hybrid')"><div class="vtype-check"><i class="fa-solid fa-check"></i></div><div class="vtype-emoji">🔋</div><div class="vtype-lbl">Hybrid</div><div class="vtype-sub">Mid-range</div></div>
-                </div>
-            </div>
-        </div>
-        <div class="btn-group" style="margin-top:20px;">
-            <button class="btn btn-primary btn-full" onclick="saveEditCard()"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
-            <button class="btn btn-outline" onclick="closeEditModal()">Cancel</button>
-        </div>
+      </div>
     </div>
-</div>
+  </div>
 
-<!-- MOBILE OVERLAY & BOTTOM NAV -->
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-<div class="bottom-nav">
-    <div class="bottom-nav-inner">
-        <div class="bnav-item active" id="bnav-dashboard" onclick="switchTab('dashboard',null);setBNav('dashboard');"><i class="fa-solid fa-gauge-high"></i>Overview</div>
-        <div class="bnav-item" id="bnav-pricing" onclick="switchTab('pricing',null);setBNav('pricing');"><i class="fa-solid fa-tags"></i>Pricing</div>
-        <div class="bnav-item" id="bnav-recharge" onclick="switchTab('recharge',null);setBNav('recharge');"><i class="fa-solid fa-wallet"></i>Recharge</div>
-        <div class="bnav-item" id="bnav-allcards" onclick="switchTab('allcards',null);loadAllCards();setBNav('allcards');"><i class="fa-solid fa-layer-group"></i>Cards</div>
-        <div class="bnav-item" id="bnav-history" onclick="switchTab('history',null);loadHistory();setBNav('history');"><i class="fa-solid fa-clock-rotate-left"></i>History</div>
+  <!-- ══ PRICING ══ -->
+  <div id="pricing" class="tab-pane">
+    <div class="container">
+      <div class="section-head">
+        <div><div class="section-title">Toll Rates</div><div class="section-sub">Current toll prices for all vehicle types</div></div>
+        <button class="btn btn-outline btn-sm" onclick="loadPricingPublic()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+      </div>
+      <div class="price-compare" id="priceCompare">
+        <div class="pc"><div class="pc-emoji">⚡</div><div class="pc-title">Electric (EV)</div><div class="pc-sub">Eco-friendly lowest rate</div><div class="pc-price ev">₹<span id="pubEvPrice">—</span></div><div class="pc-per">per crossing</div></div>
+        <div class="pc"><div class="pc-emoji">⛽</div><div class="pc-title">Fuel / Petrol–Diesel</div><div class="pc-sub">Standard combustion rate</div><div class="pc-price fuel">₹<span id="pubFuelPrice">—</span></div><div class="pc-per">per crossing</div></div>
+        <div class="pc"><div class="pc-emoji">🔋</div><div class="pc-title">Hybrid</div><div class="pc-sub">Mid-range concession rate</div><div class="pc-price hybrid">₹<span id="pubHybridPrice">—</span></div><div class="pc-per">per crossing</div></div>
+      </div>
+
+      <!-- My rate callout (if card loaded) -->
+      <div id="myRateCallout" style="display:none;margin-top:16px;" class="card">
+        <div class="card-title">Your Rate</div>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <div style="font-size:1.8rem;" id="myRateEmoji">—</div>
+          <div>
+            <div style="font-weight:700;font-size:.9rem;" id="myRateType">—</div>
+            <div style="font-family:'Space Mono',monospace;font-size:1.4rem;font-weight:700;margin-top:2px;" id="myRateValue">—</div>
+            <div style="font-size:.72rem;color:var(--text-secondary);margin-top:2px;">per toll crossing</div>
+          </div>
+          <div style="margin-left:auto;font-size:.75rem;color:var(--text-secondary);max-width:200px;text-align:right;">Based on your vehicle type registered with card <span class="mono" id="myRateCardUid" style="color:var(--accent-hover);"></span></div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;" class="card">
+        <div class="card-title">Pricing Policy</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;gap:11px;align-items:flex-start;padding:11px;background:var(--ev-bg);border-radius:9px;">
+            <span style="font-size:1.1rem;flex-shrink:0;">⚡</span>
+            <div><div style="font-weight:700;font-size:.85rem;color:var(--ev-color);">EV — Lowest Rate</div><div style="font-size:.78rem;color:var(--text-secondary);margin-top:3px;">Electric vehicles receive the maximum discount to promote clean and eco-friendly transportation on our toll network.</div></div>
+          </div>
+          <div style="display:flex;gap:11px;align-items:flex-start;padding:11px;background:var(--hybrid-bg);border-radius:9px;">
+            <span style="font-size:1.1rem;flex-shrink:0;">🔋</span>
+            <div><div style="font-weight:700;font-size:.85rem;color:var(--hybrid-color);">Hybrid — Concession Rate</div><div style="font-size:.78rem;color:var(--text-secondary);margin-top:3px;">Hybrid vehicles receive a mid-range concession — lower than standard but above EV rates, reflecting partial electric operation.</div></div>
+          </div>
+          <div style="display:flex;gap:11px;align-items:flex-start;padding:11px;background:var(--fuel-bg);border-radius:9px;">
+            <span style="font-size:1.1rem;flex-shrink:0;">⛽</span>
+            <div><div style="font-weight:700;font-size:.85rem;color:var(--fuel-color);">Fuel / ICE — Standard Rate</div><div style="font-size:.78rem;color:var(--text-secondary);margin-top:3px;">Standard rate applies to all petrol and diesel vehicles. Rates are updated by the toll authority periodically.</div></div>
+          </div>
+        </div>
+      </div>
     </div>
-</div>
-<div class="toast-container" id="toastContainer"></div>
+  </div>
+
+</main>
+
+<div class="toast-wrap" id="toastWrap"></div>
 
 <script>
-// ─── CONFIG ────────────────────────────────────
-const firebaseConfig = {
-    apiKey:"AIzaSyCBAlNfSmejLLhYD45qIMC8s5pFbh5yB4A",
-    authDomain:"smart-tollgate-78526.firebaseapp.com",
-    databaseURL:"https://smart-tollgate-78526-default-rtdb.firebaseio.com",
-    projectId:"smart-tollgate-78526",
-    storageBucket:"smart-tollgate-78526.firebasestorage.app",
-    messagingSenderId:"838873522197",
-    appId:"1:838873522197:web:87ae7feedc279561166e1c"
-};
-const RAZORPAY_KEY_ID     = "rzp_test_3WgTq9ybOpe62Y";
-const APPS_SCRIPT_WEBHOOK = "https://script.google.com/macros/s/AKfycby3csphaMUCF_EKJegBRE-XugzRb1pKh2SM0mSv1_pA3Vxpi5N1uYJKSBRRaXnlL62ycQ/exec";
+/* ── FIREBASE CONFIG ── */
+const firebaseConfig={apiKey:"AIzaSyCBAlNfSmejLLhYD45qIMC8s5pFbh5yB4A",authDomain:"smart-tollgate-78526.firebaseapp.com",databaseURL:"https://smart-tollgate-78526-default-rtdb.firebaseio.com",projectId:"smart-tollgate-78526",storageBucket:"smart-tollgate-78526.firebasestorage.app",messagingSenderId:"838873522197",appId:"1:838873522197:web:87ae7feedc279561166e1c"};
+const RAZORPAY_KEY="rzp_test_3WgTq9ybOpe62Y";
+const WEBHOOK="https://script.google.com/macros/s/AKfycby3csphaMUCF_EKJegBRE-XugzRb1pKh2SM0mSv1_pA3Vxpi5N1uYJKSBRRaXnlL62ycQ/exec";
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+const db=firebase.database();
 
-// ─── STATE ─────────────────────────────────────
-let currentUserData = {}, currentUid = "";
-let regVehicleType = "", editVehicleType = "";
-let allHistoryData = [], allCardsData = [];
-let rechargeChart, fleetChart;
-let priceLog = [];
-let currentPrices = { ev:null, fuel:null, hybrid:null };
+/* ── STATE ── */
+let currentUid="",currentUser={},currentPrices={ev:null,fuel:null,hybrid:null};
+let allUserHistory=[],histChart=null;
 
-const sectionNames = { dashboard:'Overview', pricing:'Toll Pricing', recharge:'Recharge Card', register:'Register Card', history:'Transactions', allcards:'All Cards' };
+/* ── THEME ── */
+function toggleTheme(){const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';rebuildHistChart();}
 
-// ─── THEME ─────────────────────────────────────
-function toggleTheme() {
-    const html = document.documentElement;
-    html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
-    updateChartTheme();
+/* ── TABS ── */
+function switchTab(id,el){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(n=>n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(el)el.classList.add('active');
+  else{const t=document.querySelector(`[data-tab="${id}"]`);if(t)t.classList.add('active');}
+  if(id==='card')populateCardTab();
+  if(id==='recharge')populateRechargeTab();
+  if(id==='pricing')loadPricingPublic();
 }
 
-// ─── MOBILE ────────────────────────────────────
-function toggleSidebar() {
-    document.getElementById('mainSidebar').classList.toggle('open');
-    document.getElementById('sidebarOverlay').classList.toggle('open');
-}
-function closeSidebar() {
-    document.getElementById('mainSidebar').classList.remove('open');
-    document.getElementById('sidebarOverlay').classList.remove('open');
-}
-function isMobile() { return window.innerWidth <= 768; }
-
-// ─── TABS ──────────────────────────────────────
-function switchTab(tabId, el) {
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    if (el) el.classList.add('active');
-    setEl('topbarSection', sectionNames[tabId] || tabId);
-    setBNav(tabId);
-    if (isMobile()) closeSidebar();
-    if (tabId === 'pricing') loadPricing();
-}
-function setBNav(tabId) {
-    document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
-    const el = document.getElementById('bnav-' + tabId);
-    if (el) el.classList.add('active');
+/* ── TOAST ── */
+function toast(title,msg,type='info'){
+  const icons={success:'fa-circle-check',error:'fa-circle-xmark',info:'fa-circle-info',warn:'fa-triangle-exclamation'};
+  const t=document.createElement('div');t.className=`toast ${type}`;
+  t.innerHTML=`<i class="ti fa-solid ${icons[type]||icons.info}"></i><div class="toast-body"><div class="tt">${title}</div><div class="tm">${msg}</div></div>`;
+  document.getElementById('toastWrap').appendChild(t);
+  setTimeout(()=>{t.classList.add('fadeOut');setTimeout(()=>t.remove(),320);},4200);
 }
 
-// ─── TOAST ─────────────────────────────────────
-function toast(title, msg, type = 'info') {
-    const icons = { success:'fa-circle-check', error:'fa-circle-xmark', info:'fa-circle-info', warn:'fa-triangle-exclamation' };
-    const t = document.createElement('div');
-    t.className = `toast ${type}`;
-    t.innerHTML = `<i class="toast-icon fa-solid ${icons[type]||icons.info}"></i><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div>`;
-    document.getElementById('toastContainer').appendChild(t);
-    setTimeout(() => { t.classList.add('fadeOut'); setTimeout(() => t.remove(), 320); }, 4000);
+/* ── HELPERS ── */
+function setEl(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+function vtypeBadgeHTML(vt){if(!vt)return'<span class="v-badge unknown">❓ Unknown</span>';const m={EV:'<span class="v-badge ev">⚡ EV</span>',fuel:'<span class="v-badge fuel">⛽ Fuel</span>',hybrid:'<span class="v-badge hybrid">🔋 Hybrid</span>'};return m[vt]||`<span class="v-badge unknown">${vt}</span>`;}
+function vtypeLabel(vt){return{EV:'⚡ Electric (EV)',fuel:'⛽ Fuel / ICE',hybrid:'🔋 Hybrid'}[vt]||'❓ Unknown';}
+function vtypeEmoji(vt){return{EV:'⚡',fuel:'⛽',hybrid:'🔋'}[vt]||'❓';}
+function vtypeRateColor(vt){return{EV:'var(--ev-color)',fuel:'var(--fuel-color)',hybrid:'var(--hybrid-color)'}[vt]||'var(--text-primary)';}
+function initials(name){return(name||'U').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
+
+/* ── PRICING ── */
+function loadPricingPublic(){
+  db.ref('prices').once('value').then(snap=>{
+    const p=snap.val()||{};
+    currentPrices.ev=p.ev??null;currentPrices.fuel=p.fuel??null;currentPrices.hybrid=p.hybrid??null;
+    ['ev','fuel','hybrid'].forEach(t=>{setEl('pub'+t.charAt(0).toUpperCase()+t.slice(1)+'Price',currentPrices[t]??'—');});
+    updateMyRateCallout();
+  });
 }
 
-// ─── HELPERS ───────────────────────────────────
-function setEl(id, val) { const e = document.getElementById(id); if (e) e.textContent = val; }
-
-function vtypeBadgeHTML(vt) {
-    if (!vt) return '<span class="v-badge unknown">❓ Unknown</span>';
-    const m = { EV:'<span class="v-badge ev">⚡ EV</span>', fuel:'<span class="v-badge fuel">⛽ Fuel</span>', hybrid:'<span class="v-badge hybrid">🔋 Hybrid</span>' };
-    return m[vt] || `<span class="v-badge unknown">${vt}</span>`;
-}
-function vtypeName(vt) { return { EV:'⚡ EV', fuel:'⛽ Fuel', hybrid:'🔋 Hybrid' }[vt] || '❓ Unknown'; }
-
-// ─── VEHICLE TYPE SELECTORS ────────────────────
-function regSelectVType(type) {
-    regVehicleType = type;
-    ['EV','fuel','hybrid'].forEach(t => {
-        const el = document.getElementById('reg-vt-' + t.toLowerCase());
-        if (el) el.className = 'vtype-option' + (t === type ? ' sel-' + t.toLowerCase() : '');
-    });
-}
-function editSelectVType(type) {
-    editVehicleType = type;
-    ['EV','fuel','hybrid'].forEach(t => {
-        const el = document.getElementById('edit-vt-' + t.toLowerCase());
-        if (el) el.className = 'vtype-option' + (t === type ? ' sel-' + t.toLowerCase() : '');
-    });
-}
-function clearVtypeUI(prefix) {
-    ['ev','fuel','hybrid'].forEach(t => { const el = document.getElementById(prefix + t); if (el) el.className = 'vtype-option'; });
+function updateMyRateCallout(){
+  const co=document.getElementById('myRateCallout');
+  if(!currentUid||!currentUser.vehicle_type){if(co)co.style.display='none';return;}
+  const vt=currentUser.vehicle_type;
+  const rate=currentPrices[vt==='EV'?'ev':vt]??'—';
+  if(co)co.style.display='block';
+  setEl('myRateEmoji',vtypeEmoji(vt));
+  const rtEl=document.getElementById('myRateType');if(rtEl)rtEl.textContent=vtypeLabel(vt);
+  const rvEl=document.getElementById('myRateValue');if(rvEl){rvEl.textContent='₹'+rate;rvEl.style.color=vtypeRateColor(vt);}
+  setEl('myRateCardUid',currentUid);
 }
 
-// ─── TOLL PRICING ──────────────────────────────
-function loadPricing() {
-    db.ref('prices').once('value').then(snap => {
-        const p = snap.val() || {};
-        currentPrices.ev     = p.ev     ?? null;
-        currentPrices.fuel   = p.fuel   ?? null;
-        currentPrices.hybrid = p.hybrid ?? null;
-        setEl('currentEvPrice',     currentPrices.ev     ?? '—');
-        setEl('currentFuelPrice',   currentPrices.fuel   ?? '—');
-        setEl('currentHybridPrice', currentPrices.hybrid ?? '—');
-        setEl('dashEvPrice',        currentPrices.ev     ?? '—');
-        setEl('dashFuelPrice',      currentPrices.fuel   ?? '—');
-        setEl('dashHybridPrice',    currentPrices.hybrid ?? '—');
-        setEl('evTollPrice',        currentPrices.ev     ?? '—');
-    });
+/* ── LOOKUP CARD ── */
+function lookupCard(){
+  const uid=(document.getElementById('lookupUid').value||'').trim().toUpperCase();
+  if(!uid){toast('Missing UID','Please enter your Card UID.','error');return;}
+  fetchCard(uid);
+}
+function lookupCardFromRecharge(){
+  const uid=(document.getElementById('rechUid').value||'').trim().toUpperCase();
+  if(!uid){toast('Missing UID','Enter a Card UID to fetch.','error');return;}
+  fetchCard(uid);
 }
 
-function updatePrice(type) {
-    const inputIds   = { ev:'inputEvPrice',     fuel:'inputFuelPrice',   hybrid:'inputHybridPrice' };
-    const displayIds = { ev:'currentEvPrice',   fuel:'currentFuelPrice', hybrid:'currentHybridPrice' };
-    const dashIds    = { ev:'dashEvPrice',       fuel:'dashFuelPrice',    hybrid:'dashHybridPrice' };
-    const raw = document.getElementById(inputIds[type]).value.trim();
-    const val = parseFloat(raw);
-    if (!raw || isNaN(val) || val < 0) { toast('Invalid Price', 'Enter a valid positive number.', 'error'); return; }
-    db.ref('prices/' + type).set(val).then(() => {
-        currentPrices[type] = val;
-        setEl(displayIds[type], val);
-        setEl(dashIds[type],    val);
-        if (type === 'ev') setEl('evTollPrice', val);
-        document.getElementById(inputIds[type]).value = '';
-        toast('Price Updated!', `${type.toUpperCase()} toll → ₹${val} per crossing.`, 'success');
-        addPriceLog(type, val);
-    }).catch(e => toast('Firebase Error', e.message, 'error'));
+function fetchCard(uid){
+  db.ref('Toll_Users/'+uid).once('value').then(snap=>{
+    if(!snap.exists()){toast('Not Found','Card UID not found. Check and try again.','error');return;}
+    currentUid=uid;currentUser=snap.val();
+    document.getElementById('headerUid').textContent=uid;document.getElementById('headerUid').style.display='inline-flex';
+    loadPricingPublic();
+    populateDash();
+    populateCardTab();
+    populateRechargeTab();
+    document.getElementById('lookupSection').style.display='none';
+    document.getElementById('dashSection').style.display='block';
+    toast('Card Found','Welcome, '+currentUser.name+'!','success');
+  });
 }
 
-function addPriceLog(type, val) {
-    const logEl = document.getElementById('priceLogList');
-    const now   = new Date().toLocaleString();
-    const colorMap = { ev:'var(--ev-color)', fuel:'var(--fuel-color)', hybrid:'var(--hybrid-color)' };
-    const emojiMap = { ev:'⚡', fuel:'⛽', hybrid:'🔋' };
-    priceLog.unshift({ type, val, time: now });
-    logEl.innerHTML = priceLog.map(l => `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--bg-input);border-radius:7px;font-size:.83rem;">
-            <div style="display:flex;align-items:center;gap:9px;">
-                <span style="font-size:1.05rem;">${emojiMap[l.type]}</span>
-                <div><div style="font-weight:700;color:${colorMap[l.type]};">${l.type.toUpperCase()} Price Updated</div>
-                <div style="font-size:.7rem;color:var(--text-muted);">${l.time}</div></div>
-            </div>
-            <div style="font-family:'Space Mono',monospace;font-size:.92rem;font-weight:700;color:${colorMap[l.type]};">₹${l.val}</div>
-        </div>`).join('');
+function clearCard(){
+  currentUid='';currentUser={};allUserHistory=[];
+  document.getElementById('headerUid').style.display='none';
+  document.getElementById('lookupSection').style.display='block';
+  document.getElementById('dashSection').style.display='none';
+  document.getElementById('lookupUid').value='';
+  document.getElementById('cardNoData').style.display='block';
+  document.getElementById('cardDetails').style.display='none';
+  document.getElementById('rechNoData').style.display='block';
+  document.getElementById('rechDetails').style.display='none';
+  document.getElementById('histNoCard').style.display='block';
+  document.getElementById('histContent').style.display='none';
+  document.getElementById('myRateCallout').style.display='none';
+  switchTab('home',document.querySelector('[data-tab=home]'));
 }
 
-function clearPriceLog() {
-    priceLog = [];
-    document.getElementById('priceLogList').innerHTML = '<div class="empty-state" style="padding:24px 0;"><i class="fa-regular fa-clock"></i><p>Log cleared.</p></div>';
+function refreshCard(){
+  if(!currentUid){toast('No Card','Load a card first.','warn');return;}
+  db.ref('Toll_Users/'+currentUid).once('value').then(snap=>{
+    if(snap.exists()){currentUser=snap.val();populateDash();populateCardTab();populateRechargeTab();toast('Refreshed','Card data updated.','success');}
+  });
 }
 
-// ─── REGISTER CARD ─────────────────────────────
-function registerCard() {
-    const uid     = document.getElementById('regUid').value.trim().toUpperCase();
-    const name    = document.getElementById('regName').value.trim();
-    const mobile  = document.getElementById('regMobile').value.trim();
-    const vehicle = document.getElementById('regVehicle').value.trim().toUpperCase();
-    const email   = document.getElementById('regEmail').value.trim();
-    const balance = parseFloat(document.getElementById('regBalance').value) || 0;
-    const status  = document.getElementById('regStatus').value;
-    if (!uid || !name || !mobile || !vehicle) { toast('Validation Error', 'Fill all required fields (UID, Name, Mobile, Vehicle ID).', 'error'); return; }
-    if (mobile.length !== 10 || isNaN(mobile)) { toast('Invalid Mobile', 'Enter a valid 10-digit mobile number.', 'error'); return; }
-    if (!regVehicleType) { toast('Select Vehicle Type', 'Please choose EV, Fuel, or Hybrid.', 'warn'); return; }
-    const data = { name, mobile, vehicle_id:vehicle, email, vehicle_type:regVehicleType, balance, status, date_created:new Date().toISOString().split('T')[0] };
-    db.ref('Toll_Users/' + uid).set(data)
-        .then(() => {
-            toast('Card Registered!', `${name}'s ${vtypeName(regVehicleType)} card activated.`, 'success');
-            document.querySelectorAll('#register input, #register select').forEach(el => el.value = '');
-            regVehicleType = ''; clearVtypeUI('reg-vt-');
-        })
-        .catch(e => toast('Firebase Error', e.message, 'error'));
+/* ── POPULATE DASH ── */
+function populateDash(){
+  const u=currentUser;const vt=u.vehicle_type||'';
+  const rate=currentPrices[vt==='EV'?'ev':vt]??null;
+  setEl('dashAvatar',initials(u.name));
+  document.getElementById('dashAvatar').textContent=initials(u.name);
+  setEl('dashName',u.name||'—');
+  setEl('dashUid',currentUid);
+  setEl('dashVehicle',u.vehicle_id||'—');
+  setEl('dashMobile',u.mobile||'—');
+  setEl('dashDate',u.date_created||'—');
+  setEl('dashBalance',u.balance||0);
+  document.getElementById('dashVBadge').innerHTML=vtypeBadgeHTML(vt);
+  const isActive=u.status!=='suspended';
+  document.getElementById('dashStatusBadge').innerHTML=`<span class="status-badge ${isActive?'active':'suspended'}">${isActive?'Active':'Suspended'}</span>`;
+  setEl('dashMyRate',rate??'—');
+  setEl('dashTrips',rate&&u.balance?Math.floor(u.balance/rate):'—');
+  const vtEl=document.getElementById('dashVType');if(vtEl){vtEl.textContent=vtypeLabel(vt);vtEl.style.color=vtypeRateColor(vt);}
+  setEl('dashVTypeSub',{EV:'Eco discount',fuel:'Standard rate',hybrid:'Mid-rate'}[vt]||'');
+  document.getElementById('suspendedBanner').style.display=isActive?'none':'flex';
+  document.getElementById('quickRechargeCard').style.opacity=isActive?'1':'0.5';
+  document.getElementById('dashPayBtn').disabled=!isActive;
+  loadRecentHistory();
 }
 
-// ─── FETCH / RECHARGE ──────────────────────────
-function checkBalance() {
-    currentUid = document.getElementById('rechUid').value.trim().toUpperCase();
-    if (!currentUid) { toast('Missing UID', 'Please enter a Card UID.', 'error'); return; }
-    db.ref('Toll_Users/' + currentUid).once('value').then(snap => {
-        if (snap.exists()) {
-            currentUserData = snap.val();
-            const u = currentUserData;
-            const vt = u.vehicle_type || '';
-            setEl('dispName',    u.name || '—');
-            document.getElementById('profileAvatar').textContent = (u.name||'U').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-            setEl('dispUidTag',  currentUid);
-            setEl('dispVehicle', u.vehicle_id || '—');
-            setEl('dispMobile',  u.mobile || '—');
-            setEl('dispDate',    u.date_created || '—');
-            setEl('dispBalance', u.balance || 0);
-            document.getElementById('vTypeBadgeWrap').innerHTML = vtypeBadgeHTML(vt);
-            const disc = document.getElementById('discountBadge');
-            const evNote = document.getElementById('evDiscountNote');
-            if (vt === 'EV') { disc.style.display='inline-block'; disc.textContent='EV Toll Rate'; evNote.style.display='block'; }
-            else if (vt === 'hybrid') { disc.style.display='inline-block'; disc.textContent='Hybrid Rate'; evNote.style.display='none'; }
-            else { disc.style.display='none'; evNote.style.display='none'; }
-            document.getElementById('userDetailsCard').style.display = 'block';
-            toast('Card Found', `Welcome, ${u.name}!`, 'success');
-        } else {
-            document.getElementById('userDetailsCard').style.display = 'none';
-            toast('Not Found', 'Card UID not found in database.', 'error');
-        }
-    });
+/* ── POPULATE CARD TAB ── */
+function populateCardTab(){
+  if(!currentUid){document.getElementById('cardNoData').style.display='block';document.getElementById('cardDetails').style.display='none';return;}
+  document.getElementById('cardNoData').style.display='none';document.getElementById('cardDetails').style.display='block';
+  const u=currentUser;const vt=u.vehicle_type||'';
+  const rate=currentPrices[vt==='EV'?'ev':vt]??null;
+  document.getElementById('cardAvatar').textContent=initials(u.name);
+  setEl('cardName',u.name||'—');setEl('cardUidTag',currentUid);
+  setEl('cardVehicle',u.vehicle_id||'—');setEl('cardMobile',u.mobile||'—');
+  setEl('cardEmail',u.email||'—');setEl('cardDate',u.date_created||'—');
+  setEl('cardBalance',u.balance||0);
+  const isActive=u.status!=='suspended';
+  const csl=document.getElementById('cardStatus');if(csl)csl.innerHTML=`<span class="status-badge ${isActive?'active':'suspended'}">${isActive?'Active':'Suspended'}</span>`;
+  document.getElementById('cardVBadge').innerHTML=vtypeBadgeHTML(vt);
+  document.getElementById('cardStatusBadge2').innerHTML=`<span class="status-badge ${isActive?'active':'suspended'}">${isActive?'Active':'Suspended'}</span>`;
+  setEl('cardVTypeLabel',vtypeLabel(vt));
+  // toll strip
+  const strip=document.getElementById('myTollStrip');
+  if(strip){
+    const types=[{k:'EV',ek:'ev',emoji:'⚡',label:'EV',cls:'ev'},{k:'fuel',ek:'fuel',emoji:'⛽',label:'Fuel',cls:'fuel'},{k:'hybrid',ek:'hybrid',emoji:'🔋',label:'Hybrid',cls:'hybrid'}];
+    strip.innerHTML=types.map(t=>{
+      const isMine=vt===t.k;const p=currentPrices[t.ek]??'—';const colorVar={ev:'var(--ev-color)',fuel:'var(--fuel-color)',hybrid:'var(--hybrid-color)'}[t.ek];
+      return`<div class="toll-pill${isMine?' mine '+t.cls:''}">
+        <div class="toll-pill-emoji">${t.emoji}</div>
+        <div class="toll-pill-type">${t.label}</div>
+        <div class="toll-pill-price" style="color:${colorVar};">₹${p}</div>
+        ${isMine?'<div style="font-size:.6rem;margin-top:3px;font-weight:700;color:'+colorVar+';">YOUR RATE</div>':''}
+      </div>`;
+    }).join('');
+  }
 }
 
-function initiatePayment() {
-    const amount = parseInt(document.getElementById('rechargeAmount').value);
-    if (!amount || amount <= 0) { toast('Invalid Amount', 'Enter a valid amount.', 'error'); return; }
-    new Razorpay({
-        key: RAZORPAY_KEY_ID, amount: amount * 100, currency: 'INR',
-        name: 'Smart Toll System', description: `Recharge — ${currentUid}`,
-        handler: r => handleSuccessfulRecharge(amount, r.razorpay_payment_id),
-        prefill: { name:currentUserData.name, email:currentUserData.email, contact:currentUserData.mobile },
-        theme: { color:'#6366f1' }
-    }).open();
+/* ── POPULATE RECHARGE TAB ── */
+function populateRechargeTab(){
+  if(!currentUid){document.getElementById('rechNoData').style.display='block';document.getElementById('rechDetails').style.display='none';return;}
+  document.getElementById('rechNoData').style.display='none';document.getElementById('rechDetails').style.display='block';
+  const u=currentUser;const vt=u.vehicle_type||'';
+  document.getElementById('rechAvatar').textContent=initials(u.name);
+  setEl('rechName',u.name||'—');setEl('rechUidTag',currentUid);
+  setEl('rechBalance',u.balance||0);
+  document.getElementById('rechVBadge').innerHTML=vtypeBadgeHTML(vt);
+  const isActive=u.status!=='suspended';
+  document.getElementById('rechSuspendedNote').style.display=isActive?'none':'flex';
+  document.getElementById('rechEvNote').style.display=vt==='EV'?'flex':'none';
+  if(vt==='EV')setEl('rechEvRate',currentPrices.ev??'—');
+  document.getElementById('rechFormCard').style.opacity=isActive?'1':'0.5';
+  document.getElementById('rechPayBtn').disabled=!isActive;
 }
 
-function handleSuccessfulRecharge(amountAdded, paymentId) {
-    const newBalance = (currentUserData.balance || 0) + amountAdded;
-    db.ref('Toll_Users/' + currentUid).update({ balance: newBalance }).then(() => {
-        setEl('dispBalance', newBalance);
-        currentUserData.balance = newBalance;
-        document.getElementById('rechargeAmount').value = '';
-        toast('Payment Successful!', `₹${amountAdded} added. Balance: ₹${newBalance}`, 'success');
-        fetch(APPS_SCRIPT_WEBHOOK, { method:'POST', body:JSON.stringify({ card_uid:currentUid, vehicle_id:currentUserData.vehicle_id, vehicle_type:currentUserData.vehicle_type||'Unknown', amount:amountAdded, payment_id:paymentId }) }).catch(()=>{});
-    });
+/* ── QUICK AMOUNT BUTTONS ── */
+function setQuickAmt(amt,btn){
+  document.querySelectorAll('.quick-amounts .qa-btn').forEach(b=>{if(b.closest('#quickRechargeCard'))b.classList.remove('sel');});
+  btn.classList.add('sel');
+  document.getElementById('dashRechargeAmt').value=amt;
+}
+function setRechAmt(amt,btn){
+  document.querySelectorAll('#rechDetails .qa-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  document.getElementById('rechAmount').value=amt;
+}
+function clearQASel(){document.querySelectorAll('#quickRechargeCard .qa-btn').forEach(b=>b.classList.remove('sel'));}
+function clearRechSel(){document.querySelectorAll('#rechDetails .qa-btn').forEach(b=>b.classList.remove('sel'));}
+
+/* ── PAYMENT ── */
+function initiatePayment(source){
+  const amtEl=source==='dash'?'dashRechargeAmt':'rechAmount';
+  const amount=parseInt(document.getElementById(amtEl).value);
+  if(!amount||amount<=0){toast('Invalid Amount','Please enter a valid recharge amount.','error');return;}
+  if(currentUser.status==='suspended'){toast('Card Suspended','Cannot recharge a suspended card.','error');return;}
+  new Razorpay({
+    key:RAZORPAY_KEY,amount:amount*100,currency:'INR',
+    name:'SmartToll',description:`FASTag Recharge — ${currentUid}`,
+    handler:r=>handleRechargeSuccess(amount,r.razorpay_payment_id,source),
+    prefill:{name:currentUser.name,email:currentUser.email,contact:currentUser.mobile},
+    theme:{color:'#7c3aed'}
+  }).open();
 }
 
-// ─── EDIT CARD MODAL ───────────────────────────
-function openEditModal(uid, userData) {
-    if (!uid || uid === 'undefined') { toast('Error', 'No card selected.', 'error'); return; }
-    editVehicleType = userData.vehicle_type || '';
-    setEl('editModalUid', uid);
-    document.getElementById('editName').value    = userData.name    || '';
-    document.getElementById('editMobile').value  = userData.mobile  || '';
-    document.getElementById('editVehicle').value = userData.vehicle_id || '';
-    document.getElementById('editEmail').value   = userData.email   || '';
-    document.getElementById('editBalance').value = userData.balance || 0;
-    document.getElementById('editStatus').value  = userData.status  || 'active';
-    clearVtypeUI('edit-vt-');
-    if (editVehicleType) {
-        const el = document.getElementById('edit-vt-' + editVehicleType.toLowerCase());
-        if (el) el.className = 'vtype-option sel-' + editVehicleType.toLowerCase();
-    }
-    document.getElementById('editModal').classList.remove('hidden');
+function handleRechargeSuccess(amtAdded,paymentId,source){
+  const newBal=(currentUser.balance||0)+amtAdded;
+  db.ref('Toll_Users/'+currentUid).update({balance:newBal}).then(()=>{
+    currentUser.balance=newBal;
+    setEl('dashBalance',newBal);setEl('rechBalance',newBal);setEl('cardBalance',newBal);
+    const rate=currentPrices[currentUser.vehicle_type==='EV'?'ev':currentUser.vehicle_type]??null;
+    if(rate)setEl('dashTrips',Math.floor(newBal/rate));
+    document.getElementById(source==='dash'?'dashRechargeAmt':'rechAmount').value='';
+    clearQASel();clearRechSel();
+    toast('Payment Successful!',`₹${amtAdded} added. New balance: ₹${newBal}`,'success');
+    fetch(WEBHOOK,{method:'POST',body:JSON.stringify({card_uid:currentUid,vehicle_id:currentUser.vehicle_id,vehicle_type:currentUser.vehicle_type||'Unknown',amount:amtAdded,payment_id:paymentId})}).catch(()=>{});
+    loadRecentHistory();
+  });
 }
 
-function closeEditModal() { document.getElementById('editModal').classList.add('hidden'); }
-
-function saveEditCard() {
-    const uid     = document.getElementById('editModalUid').textContent.trim();
-    const name    = document.getElementById('editName').value.trim();
-    const mobile  = document.getElementById('editMobile').value.trim();
-    const vehicle = document.getElementById('editVehicle').value.trim().toUpperCase();
-    const email   = document.getElementById('editEmail').value.trim();
-    const balance = parseFloat(document.getElementById('editBalance').value) || 0;
-    const status  = document.getElementById('editStatus').value;
-    if (!name || !mobile || !vehicle) { toast('Validation Error', 'Name, mobile, and vehicle ID are required.', 'error'); return; }
-    if (!editVehicleType) { toast('Select Vehicle Type', 'Please choose EV, Fuel, or Hybrid.', 'warn'); return; }
-    const updates = { name, mobile, vehicle_id:vehicle, email, balance, status, vehicle_type:editVehicleType };
-    db.ref('Toll_Users/' + uid).update(updates).then(() => {
-        toast('Card Updated!', `${name}'s card saved successfully.`, 'success');
-        closeEditModal();
-        if (uid === currentUid) { Object.assign(currentUserData, updates); checkBalance(); }
-        if (document.getElementById('allcards').classList.contains('active')) loadAllCards();
-        refreshDashboard();
-    }).catch(e => toast('Firebase Error', e.message, 'error'));
+/* ── HISTORY ── */
+function loadHistory(){
+  if(!currentUid){document.getElementById('histNoCard').style.display='block';document.getElementById('histContent').style.display='none';return;}
+  document.getElementById('histNoCard').style.display='none';document.getElementById('histContent').style.display='block';
+  document.getElementById('histSubHead').textContent=`Recharge history for card ${currentUid}`;
+  const tb=document.getElementById('histTableBody');const mb=document.getElementById('histMobile');
+  tb.innerHTML='<tr class="loader-row"><td colspan="4"><span class="spinner"></span>Loading…</td></tr>';mb.innerHTML='';
+  fetch(WEBHOOK).then(r=>r.json()).then(data=>{
+    allUserHistory=data.filter(r=>r.uid===currentUid).reverse();
+    renderHistStats(allUserHistory);
+    renderHistTable(allUserHistory);
+    buildHistChart(allUserHistory);
+  }).catch(()=>{tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--danger);padding:26px;">Failed to load history.</td></tr>';});
 }
 
-document.getElementById('editModal').addEventListener('click', e => { if (e.target.id === 'editModal') closeEditModal(); });
-
-// ─── HISTORY ───────────────────────────────────
-function loadHistory() {
-    const tbody = document.getElementById('historyTableBody');
-    const ml    = document.getElementById('historyMobileList');
-    tbody.innerHTML = '<tr class="loader-row"><td colspan="6"><span class="spinner"></span>Loading…</td></tr>';
-    ml.innerHTML = '';
-    fetch(APPS_SCRIPT_WEBHOOK).then(r => r.json()).then(data => {
-        allHistoryData = data.filter(r => r.uid).reverse();
-        renderHistory(allHistoryData);
-    }).catch(() => {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--danger);padding:28px;">Failed to load. Check Apps Script deployment.</td></tr>`;
-    });
-}
-
-function renderHistory(data) {
-    const tbody = document.getElementById('historyTableBody');
-    const ml    = document.getElementById('historyMobileList');
-    const count = document.getElementById('historyCount');
-    if (!data.length) {
-        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No transactions found.</p></div></td></tr>';
-        ml.innerHTML = '<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No transactions found.</p></div>';
-        count.textContent = ''; return;
-    }
-    tbody.innerHTML = data.map(row => `<tr>
-        <td>${new Date(row.date).toLocaleString()}</td>
-        <td><span class="mono">${row.uid}</span></td>
-        <td>${row.vehicle||'—'}</td>
-        <td style="color:var(--success);font-weight:700;font-family:'Space Mono',monospace;">+₹${row.amount}</td>
-        <td><span class="mono" style="font-size:.74rem;">${row.payment_id}</span></td>
-        <td><span class="status-badge success"><i class="fa-solid fa-circle-check" style="font-size:.52rem;"></i> Success</span></td>
+function loadRecentHistory(){
+  const tb=document.getElementById('recentHistoryBody');const mb=document.getElementById('recentHistoryMobile');
+  tb.innerHTML='<tr class="loader-row"><td colspan="4"><span class="spinner"></span></td></tr>';mb.innerHTML='';
+  if(!currentUid)return;
+  fetch(WEBHOOK).then(r=>r.json()).then(data=>{
+    const rows=data.filter(r=>r.uid===currentUid).reverse().slice(0,5);
+    if(!rows.length){tb.innerHTML='<tr class="empty-row"><td colspan="4" style="text-align:center;color:var(--text-muted);">No transactions yet.</td></tr>';mb.innerHTML='<div class="empty-state"><p>No transactions yet.</p></div>';return;}
+    tb.innerHTML=rows.map(r=>`<tr>
+      <td style="color:var(--text-secondary);font-size:.78rem;">${new Date(r.date).toLocaleString()}</td>
+      <td style="font-family:'Space Mono',monospace;color:var(--success);font-weight:700;">+₹${r.amount}</td>
+      <td><span class="mono">${(r.payment_id||'').slice(0,18)}…</span></td>
+      <td><span class="status-badge active"><i class="fa-solid fa-circle-check" style="font-size:.5rem;"></i> Done</span></td>
     </tr>`).join('');
-    ml.innerHTML = data.map(row => `<div class="m-card">
-        <div class="m-card-top">
-            <div><div class="m-card-name" style="color:var(--success);font-family:'Space Mono',monospace;">+₹${row.amount}</div>
-            <div style="font-size:.68rem;color:var(--text-muted);margin-top:2px;">${new Date(row.date).toLocaleString()}</div></div>
-            <span class="status-badge success" style="font-size:.64rem;"><i class="fa-solid fa-circle-check" style="font-size:.48rem;"></i> Success</span>
-        </div>
-        <hr class="m-card-divider">
-        <div class="m-card-row"><span class="m-card-label">Card UID</span><span class="mono">${row.uid}</span></div>
-        <div class="m-card-row"><span class="m-card-label">Vehicle</span><span>${row.vehicle||'—'}</span></div>
-        <div class="m-card-row"><span class="m-card-label">Payment ID</span><span class="mono" style="font-size:.7rem;">${(row.payment_id||'').slice(0,20)}…</span></div>
+    mb.innerHTML=rows.map(r=>`<div class="m-card">
+      <div class="m-card-top">
+        <div><div style="font-family:'Space Mono',monospace;font-weight:700;color:var(--success);font-size:.95rem;">+₹${r.amount}</div><div style="font-size:.68rem;color:var(--text-muted);margin-top:2px;">${new Date(r.date).toLocaleString()}</div></div>
+        <span class="status-badge active" style="font-size:.62rem;">Done</span>
+      </div>
+      <hr class="m-card-divider">
+      <div class="m-card-row"><span class="m-card-lbl">Payment ID</span><span class="mono">${(r.payment_id||'').slice(0,20)}…</span></div>
     </div>`).join('');
-    count.textContent = `Showing ${data.length} transaction${data.length !== 1 ? 's' : ''}`;
+  }).catch(()=>{tb.innerHTML='<tr class="empty-row"><td colspan="4" style="color:var(--text-muted);text-align:center;">Could not load.</td></tr>';});
 }
 
-function filterHistory() {
-    const q = document.getElementById('historySearch').value.toLowerCase();
-    const f = document.getElementById('historyFilter').value;
-    const filtered = allHistoryData.filter(r => {
-        const match = (r.uid + r.vehicle + r.payment_id).toLowerCase().includes(q);
-        const a = parseFloat(r.amount);
-        return match && (!f || (f==='low'&&a<200) || (f==='mid'&&a>=200&&a<=500) || (f==='high'&&a>500));
-    });
-    renderHistory(filtered);
+function renderHistStats(data){
+  const total=data.reduce((s,r)=>s+parseFloat(r.amount||0),0);
+  setEl('histTotal',total.toLocaleString());setEl('histCount',data.length);
+  if(data.length){const last=data[0];setEl('histLast',new Date(last.date).toLocaleDateString());setEl('histLastAmt','₹'+last.amount);}
 }
 
-// ─── ALL CARDS ─────────────────────────────────
-function loadAllCards() {
-    const tbody = document.getElementById('allCardsBody');
-    const ml    = document.getElementById('allCardsMobileList');
-    tbody.innerHTML = '<tr class="loader-row"><td colspan="8"><span class="spinner"></span>Fetching…</td></tr>';
-    ml.innerHTML = '';
-    db.ref('Toll_Users').once('value').then(snap => {
-        if (!snap.exists()) { tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:38px;color:var(--text-muted);">No cards registered yet.</td></tr>'; return; }
-        allCardsData = [];
-        snap.forEach(c => {
-            allCardsData.push({ uid: c.key, ...c.val() });
-        });
-        allCardsData.sort((a,b) => (b.date_created||'').localeCompare(a.date_created||''));
-        renderCards(allCardsData);
-    });
+function renderHistTable(data){
+  const tb=document.getElementById('histTableBody');const mb=document.getElementById('histMobile');const cl=document.getElementById('histCountLabel');
+  if(!data.length){tb.innerHTML='<tr class="empty-row"><td colspan="4" style="text-align:center;color:var(--text-muted);">No transactions found.</td></tr>';mb.innerHTML='<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No transactions found.</p></div>';cl.textContent='';return;}
+  tb.innerHTML=data.map(r=>`<tr>
+    <td style="color:var(--text-secondary);font-size:.8rem;">${new Date(r.date).toLocaleString()}</td>
+    <td style="font-family:'Space Mono',monospace;color:var(--success);font-weight:700;">+₹${r.amount}</td>
+    <td><span class="mono">${r.payment_id||'—'}</span></td>
+    <td><span class="status-badge active"><i class="fa-solid fa-circle-check" style="font-size:.5rem;"></i> Success</span></td>
+  </tr>`).join('');
+  mb.innerHTML=data.map(r=>`<div class="m-card">
+    <div class="m-card-top">
+      <div><div style="font-family:'Space Mono',monospace;font-weight:700;color:var(--success);">+₹${r.amount}</div><div style="font-size:.68rem;color:var(--text-muted);margin-top:2px;">${new Date(r.date).toLocaleString()}</div></div>
+      <span class="status-badge active" style="font-size:.62rem;">Success</span>
+    </div>
+    <hr class="m-card-divider">
+    <div class="m-card-row"><span class="m-card-lbl">Payment ID</span><span class="mono" style="font-size:.68rem;">${(r.payment_id||'').slice(0,24)}…</span></div>
+  </div>`).join('');
+  cl.textContent=`Showing ${data.length} transaction${data.length!==1?'s':''}`;
 }
 
-function renderCards(data) {
-    const tbody = document.getElementById('allCardsBody');
-    const ml    = document.getElementById('allCardsMobileList');
-    if (!data.length) {
-        tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:38px;color:var(--text-muted);">No cards match filters.</td></tr>';
-        ml.innerHTML='<div class="empty-state"><i class="fa-solid fa-layer-group"></i><p>No cards match.</p></div>'; return;
-    }
-    const safeUser = u => JSON.stringify(u).replace(/'/g,"&#39;");
-    tbody.innerHTML = data.map(u => {
-        const isActive = u.status !== 'suspended';
-        const hasType  = !!u.vehicle_type;
-        return `<tr>
-            <td><strong>${u.name||'—'}</strong></td>
-            <td><span class="mono">${u.uid}</span></td>
-            <td>${u.vehicle_id||'—'}</td>
-            <td>${vtypeBadgeHTML(u.vehicle_type)}${!hasType?' <span style="color:var(--warning);font-size:.66rem;font-weight:700;margin-left:3px;"><i class="fa-solid fa-triangle-exclamation"></i> Not set</span>':''}</td>
-            <td style="font-family:'Space Mono',monospace;color:var(--success);">₹${u.balance||0}</td>
-            <td style="color:var(--text-muted);font-size:.78rem;">${u.date_created||'—'}</td>
-            <td><span class="status-badge ${isActive?'success':'danger'}">${isActive?'Active':'Suspended'}</span></td>
-            <td><div style="display:flex;gap:5px;flex-wrap:wrap;">
-                <button class="btn btn-outline btn-sm" onclick='openEditModal("${u.uid}",${safeUser(u)})' title="Edit card"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
-                <button class="btn ${isActive?'btn-danger':'btn-success'} btn-sm" onclick="toggleCardStatus('${u.uid}','${u.status||'active'}')"><i class="fa-solid ${isActive?'fa-pause':'fa-play'}"></i> ${isActive?'Suspend':'Activate'}</button>
-            </div></td>
-        </tr>`;
-    }).join('');
-    ml.innerHTML = data.map(u => {
-        const isActive = u.status !== 'suspended';
-        const hasType  = !!u.vehicle_type;
-        return `<div class="m-card">
-            <div class="m-card-top">
-                <div><div class="m-card-name">${u.name||'—'}</div>
-                <div style="display:flex;gap:4px;align-items:center;margin-top:4px;flex-wrap:wrap;">
-                    ${vtypeBadgeHTML(u.vehicle_type)}
-                    ${!hasType?'<span style="color:var(--warning);font-size:.64rem;font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> No type</span>':''}
-                    <span class="status-badge ${isActive?'success':'danger'}" style="font-size:.62rem;padding:2px 6px;">${isActive?'Active':'Suspended'}</span>
-                </div></div>
-                <div style="text-align:right;"><div style="font-family:'Space Mono',monospace;color:var(--success);font-size:.9rem;font-weight:700;">₹${u.balance||0}</div>
-                <div style="font-size:.65rem;color:var(--text-muted);margin-top:1px;">${u.date_created||''}</div></div>
-            </div>
-            <hr class="m-card-divider">
-            <div class="m-card-row"><span class="m-card-label">Card UID</span><span class="mono">${u.uid}</span></div>
-            <div class="m-card-row"><span class="m-card-label">Vehicle ID</span><span>${u.vehicle_id||'—'}</span></div>
-            <div style="display:flex;gap:6px;margin-top:8px;">
-                <button class="btn btn-outline btn-full btn-sm" onclick='openEditModal("${u.uid}",${safeUser(u)})'><i class="fa-solid fa-pen-to-square"></i> Edit</button>
-                <button class="btn ${isActive?'btn-danger':'btn-success'} btn-full btn-sm" onclick="toggleCardStatus('${u.uid}','${u.status||'active'}')"><i class="fa-solid ${isActive?'fa-pause':'fa-play'}"></i> ${isActive?'Suspend':'Activate'}</button>
-            </div>
-        </div>`;
-    }).join('');
+function filterHistoryUser(){
+  const q=(document.getElementById('histSearch').value||'').toLowerCase();
+  const f=document.getElementById('histFilter').value;
+  const filtered=allUserHistory.filter(r=>{
+    const match=(r.payment_id||r.amount||'').toString().toLowerCase().includes(q);
+    const a=parseFloat(r.amount);
+    return match&&(!f||(f==='low'&&a<200)||(f==='mid'&&a>=200&&a<=500)||(f==='high'&&a>500));
+  });
+  renderHistTable(filtered);
 }
 
-function toggleCardStatus(uid, currentStatus) {
-    const newStatus = currentStatus === 'suspended' ? 'active' : 'suspended';
-    db.ref('Toll_Users/' + uid).update({ status:newStatus }).then(() => {
-        toast('Status Updated', `Card ${uid} is now ${newStatus}.`, newStatus==='active'?'success':'info');
-        loadAllCards();
-    });
+/* ── CHART ── */
+function buildHistChart(data){
+  const isDark=document.documentElement.dataset.theme!=='light';
+  const textColor=isDark?'#8888a4':'#9090b0';
+  const gridColor=isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.05)';
+  const last6=data.slice(0,6).reverse();
+  const labels=last6.map(r=>new Date(r.date).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}));
+  const amounts=last6.map(r=>parseFloat(r.amount||0));
+  if(histChart){histChart.destroy();histChart=null;}
+  const ctx=document.getElementById('histChart');if(!ctx)return;
+  histChart=new Chart(ctx.getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:[{label:'Recharge (₹)',data:amounts,backgroundColor:'rgba(124,58,237,0.5)',borderColor:'rgba(124,58,237,0.85)',borderWidth:1,borderRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gridColor},ticks:{color:textColor,font:{size:11}}},y:{grid:{color:gridColor},ticks:{color:textColor,callback:v=>'₹'+v,font:{size:11}}}}}
+  });
 }
+function rebuildHistChart(){if(allUserHistory.length)buildHistChart(allUserHistory);}
 
-function filterCards() {
-    const q      = document.getElementById('cardSearch').value.toLowerCase();
-    const type   = document.getElementById('cardTypeFilter').value;
-    const status = document.getElementById('cardStatusFilter').value;
-    const filtered = allCardsData.filter(u => {
-        const matchQ = ((u.name || '') + (u.uid || '') + (u.vehicle_id || '')).toLowerCase().includes(q);
-        const ut = u.vehicle_type || '';
-        const matchType = !type || (type==='unknown' ? !ut : ut===type);
-        const matchStatus = !status || (u.status||'active') === status;
-        return matchQ && matchType && matchStatus;
-    });
-    renderCards(filtered);
-}
-
-// ─── DASHBOARD ─────────────────────────────────
-function refreshDashboard() {
-    db.ref('Toll_Users').once('value').then(snap => {
-        if (!snap.exists()) { ['statCards','statTotal','statEV','statFuelHybrid'].forEach(id => setEl(id,'0')); return; }
-        let total=0, ev=0, fuelHybrid=0, cards=0;
-        const recent = [];
-        snap.forEach(c => {
-            const u = c.val(); cards++;
-            total += u.balance || 0;
-            if (u.vehicle_type==='EV') ev++;
-            else if (u.vehicle_type==='fuel'||u.vehicle_type==='hybrid') fuelHybrid++;
-            recent.push({ uid:c.key, ...u });
-        });
-        recent.sort((a,b) => (b.date_created||'').localeCompare(a.date_created||''));
-        animateCount('statCards', cards);
-        animateCount('statTotal', total, '₹');
-        animateCount('statEV', ev);
-        animateCount('statFuelHybrid', fuelHybrid);
-        setEl('statTotalSub', `Across ${cards} card${cards!==1?'s':''}`);
-
-        const slice = recent.slice(0, 5);
-        const tbody = document.getElementById('recentCardsBody');
-        tbody.innerHTML = slice.map(u => {
-            const isActive = u.status !== 'suspended';
-            return `<tr>
-                <td><strong>${u.name||'—'}</strong></td>
-                <td><span class="mono">${u.uid}</span></td>
-                <td>${u.vehicle_id||'—'}</td>
-                <td>${vtypeBadgeHTML(u.vehicle_type)}</td>
-                <td style="font-family:'Space Mono',monospace;color:var(--success);">₹${u.balance||0}</td>
-                <td><span class="status-badge ${isActive?'success':'danger'}">${isActive?'Active':'Suspended'}</span></td>
-            </tr>`;
-        }).join('') || '<tr><td colspan="6" style="text-align:center;padding:26px;color:var(--text-muted);">No cards yet.</td></tr>';
-
-        const rm = document.getElementById('recentMobileList');
-        if (rm) rm.innerHTML = slice.map(u => {
-            const isActive = u.status !== 'suspended';
-            return `<div class="m-card">
-                <div class="m-card-top">
-                    <div><div class="m-card-name">${u.name||'—'}</div>
-                    <div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;">${vtypeBadgeHTML(u.vehicle_type)}
-                    <span class="status-badge ${isActive?'success':'danger'}" style="font-size:.62rem;padding:2px 6px;">${isActive?'Active':'Suspended'}</span></div></div>
-                    <div style="font-family:'Space Mono',monospace;color:var(--success);font-weight:700;font-size:.9rem;">₹${u.balance||0}</div>
-                </div>
-                <hr class="m-card-divider">
-                <div class="m-card-row"><span class="m-card-label">UID</span><span class="mono">${u.uid}</span></div>
-                <div class="m-card-row"><span class="m-card-label">Vehicle</span><span>${u.vehicle_id||'—'}</span></div>
-            </div>`;
-        }).join('') || '<div class="empty-state"><p>No cards yet.</p></div>';
-
-        const fuelCnt   = recent.filter(u=>u.vehicle_type==='fuel').length;
-        const hybridCnt = recent.filter(u=>u.vehicle_type==='hybrid').length;
-        const unknownCnt= recent.filter(u=>!u.vehicle_type).length;
-        if (fleetChart) { fleetChart.data.datasets[0].data=[ev,fuelCnt,hybridCnt,unknownCnt]; fleetChart.update(); }
-    });
-}
-
-function animateCount(id, target, prefix='') {
-    const el = document.getElementById(id); if (!el) return;
-    let start=0;
-    const step = Math.max(1,Math.ceil(target/40));
-    const iv = setInterval(() => { start=Math.min(start+step,target); el.textContent=prefix+start.toLocaleString(); if(start>=target) clearInterval(iv); }, 20);
-}
-
-// ─── CHARTS ────────────────────────────────────
-function initCharts() {
-    const isDark = document.documentElement.dataset.theme !== 'light';
-    const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-    const textColor = isDark ? '#8b8ba0' : '#9090a8';
-    rechargeChart = new Chart(document.getElementById('rechargeChart').getContext('2d'), {
-        type:'bar',
-        data:{ labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets:[{ label:'Recharge (₹)', data:[1200,1900,800,2400,1600,3000,2200], backgroundColor:'rgba(99,102,241,0.55)', borderColor:'rgba(99,102,241,0.85)', borderWidth:1, borderRadius:5 }] },
-        options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ x:{ grid:{ color:gridColor }, ticks:{ color:textColor } }, y:{ grid:{ color:gridColor }, ticks:{ color:textColor, callback:v=>'₹'+v } } } }
-    });
-    fleetChart = new Chart(document.getElementById('fleetChart').getContext('2d'), {
-        type:'doughnut',
-        data:{ labels:['EV','Fuel','Hybrid','Unknown'], datasets:[{ data:[0,0,0,0], backgroundColor:['rgba(52,211,153,.8)','rgba(251,146,60,.8)','rgba(167,139,250,.8)','rgba(100,100,120,.45)'], borderColor:['rgba(52,211,153,1)','rgba(251,146,60,1)','rgba(167,139,250,1)','rgba(100,100,120,.7)'], borderWidth:2 }] },
-        options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ color:textColor, padding:13, usePointStyle:true, font:{ size:11 } } } }, cutout:'62%' }
-    });
-}
-
-function updateChartTheme() {
-    const isDark = document.documentElement.dataset.theme !== 'light';
-    const textColor = isDark ? '#8b8ba0' : '#9090a8';
-    const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-    if (rechargeChart) {
-        rechargeChart.options.scales.x.ticks.color = textColor;
-        rechargeChart.options.scales.y.ticks.color = textColor;
-        rechargeChart.options.scales.x.grid.color  = gridColor;
-        rechargeChart.options.scales.y.grid.color  = gridColor;
-        rechargeChart.update();
-    }
-    if (fleetChart) { fleetChart.options.plugins.legend.labels.color = textColor; fleetChart.update(); }
-}
-
-// ─── INIT ──────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-    initCharts();
-    refreshDashboard();
-    loadPricing();
-});
+/* ── INIT ── */
+window.addEventListener('DOMContentLoaded',()=>{loadPricingPublic();});
 </script>
 </body>
 </html>
